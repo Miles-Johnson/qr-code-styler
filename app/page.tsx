@@ -1,10 +1,11 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { QrCode, Wand2, Zap, Shield, Eye, Palette } from 'lucide-react'
 import Image from "next/image"
 import Link from "next/link"
@@ -135,9 +136,24 @@ export default function Home() {
         <div className="max-w-3xl mx-auto">
           <Card className="bg-slate-900/50 border-slate-800">
             <CardContent className="p-8">
-              <h2 className="text-2xl font-bold text-slate-50 mb-6">
+              <h2 className="text-2xl font-bold text-slate-50 mb-2">
                 Start Creating Your Styled QR Code
               </h2>
+              <h3 className="text-lg text-slate-50 mb-2">Style Description</h3>
+              <Textarea
+                placeholder="Describe what you want your QR code to look like..."
+                className="bg-slate-800 border-slate-700 text-slate-200 focus:border-amber-500 resize-none mb-4"
+              />
+              <p className="text-slate-400 text-sm mb-6">
+                Be specific about the style, colors, and artistic elements you want in your QR code
+              </p>
+              <div className="w-full border-dashed border-2 border-slate-700 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-center">
+                  {/* Placeholder for upload icon */}
+                  <div className="w-6 h-6 text-slate-400 mr-2"></div>
+                  <span className="text-slate-400">Upload QR Code</span>
+                </div>
+              </div>
               <Tabs defaultValue="url" className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
                   <TabsTrigger value="url">URL</TabsTrigger>
