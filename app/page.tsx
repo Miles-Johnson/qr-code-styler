@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { QrCode, Wand2, Zap, Shield, Eye, Palette } from 'lucide-react'
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from 'react';
 
 // Extract feature data for better maintainability
 const features = [
@@ -46,6 +47,15 @@ const exampleQRCodes = [
 ]
 
 export default function Home() {
+  const [predictionId, setPredictionId] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const startPolling = (id: string) => {
+    // Placeholder for polling logic
+    console.log('Start polling for prediction ID:', id);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950">
       {/* Header */}
@@ -61,15 +71,15 @@ export default function Home() {
             <Button variant="ghost" className="text-slate-200 hover:text-amber-500">
               Sign In
             </Button>
-                  <Button
-                    className="bg-amber-500 hover:bg-amber-600 text-slate-900"
-                    onClick={() => {
-                      const target = document.querySelector(".p-8")
-                      target?.scrollIntoView({ behavior: "smooth" })
-                    }}
-                  >
-                    Get Started
-                  </Button>
+            <Button
+              className="bg-amber-500 hover:bg-amber-600 text-slate-900"
+              onClick={() => {
+                const target = document.querySelector(".p-8")
+                target?.scrollIntoView({ behavior: "smooth" })
+              }}
+            >
+              Get Started
+            </Button>
           </div>
         </div>
       </header>
@@ -136,54 +146,101 @@ export default function Home() {
         <div className="max-w-3xl mx-auto">
           <Card className="bg-slate-900/50 border-slate-800">
             <CardContent className="p-8">
-              <h2 className="text-2xl font-bold text-slate-50 mb-2">
-                Start Creating Your Styled QR Code
-              </h2>
-              <h3 className="text-lg text-slate-50 mb-2">Style Description</h3>
-              <Textarea
-                placeholder="Describe what you want your QR code to look like..."
-                className="bg-slate-800 border-slate-700 text-slate-200 focus:border-amber-500 resize-none mb-4"
-              />
-              <p className="text-slate-400 text-sm mb-6">
-                Be specific about the style, colors, and artistic elements you want in your QR code
-              </p>
-              <div className="w-full border-dashed border-2 border-slate-700 rounded-lg p-4 mb-6">
-                <div className="flex items-center justify-center">
-                  {/* Placeholder for upload icon */}
-                  <div className="w-6 h-6 text-slate-400 mr-2"></div>
-                  <span className="text-slate-400">Upload QR Code</span>
+              <form
+                onSubmit={async (event) => {
+                  event.preventDefault();
+                  const prompt = (
+                    document.getElementById('prompt') as HTMLTextAreaElement
+                  ).value;
+                  const imageInput = document.getElementById(
+                    'image'
+                  ) as HTMLInputElement;
+                  const image = imageInput.files ? imageInput.files[0] : null;
+                  console.log({ prompt, image });
+                  const formData = new FormData();
+                  formData.append('prompt', prompt);
+                  if (image) {
+                    formData.append('image', image);
+                  }
+
+                  try {
+                    const response = await fetch('/api/predictions', {
+                      method: 'POST',
+                      body: formData,
+                    });
+
+                    if (!response.ok) {
+                      throw new Error(`API request failed with status ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    console.log('API response:', data);
+
+                    // Store the prediction ID and initiate polling
+                    setPredictionId(data.id);
+                    setStatus('processing');
+                    startPolling(data.id);
+                  } catch (error) {
+                    console.error('Error submitting form:', error);
+                    // Handle error, display error message to the user
+                    setError('Failed to generate QR code. Please try again.');
+                  }
+                }}
+              >
+                <h2 className="text-2xl font-bold text-slate-50 mb-2">
+                  Start Creating Your Styled QR Code
+                </h2>
+                <h3 className="text-lg text-slate-50 mb-2">Style Description</h3>
+                <Textarea
+                  id="prompt"
+                  placeholder="Describe what you want your QR code to look like..."
+                  className="bg-slate-800 border-slate-700 text-slate-200 focus:border-amber-500 resize-none mb-4"
+                />
+                <p className="text-slate-400 text-sm mb-6">
+                  Be specific about the style, colors, and artistic elements you want in your QR code
+                </p>
+                <div className="w-full border-dashed border-2 border-slate-700 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-center">
+                    {/* Placeholder for upload icon */}
+                    <div className="w-6 h-6 text-slate-400 mr-2"></div>
+                    <span className="text-slate-400">Upload QR Code</span>
+                  </div>
                 </div>
-              </div>
-              <Tabs defaultValue="url" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="url">URL</TabsTrigger>
-                  <TabsTrigger value="text">Text</TabsTrigger>
-                </TabsList>
-                <TabsContent value="url">
-                  <div className="space-y-4">
-                    <Input
-                      placeholder="Enter your URL"
-                      className="bg-slate-800 border-slate-700 text-slate-200 focus:border-amber-500"
-                    />
-                    <Button className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 group">
-                      Generate QR Code
-                      <Zap className="ml-2 h-4 w-4 group-hover:animate-pulse" />
-                    </Button>
-                  </div>
-                </TabsContent>
-                <TabsContent value="text">
-                  <div className="space-y-4">
-                    <Input
-                      placeholder="Enter your text"
-                      className="bg-slate-800 border-slate-700 text-slate-200 focus:border-amber-500"
-                    />
-                    <Button className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 group">
-                      Generate QR Code
-                      <Zap className="ml-2 h-4 w-4 group-hover:animate-pulse" />
-                    </Button>
-                  </div>
-                </TabsContent>
-              </Tabs>
+                <input type="file" id="image" className="mb-4" />
+                <Tabs defaultValue="url" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2 mb-6">
+                    <TabsTrigger value="url">URL</TabsTrigger>
+                    <TabsTrigger value="text">Text</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="url">
+                    <div className="space-y-4">
+                      <Input
+                        placeholder="Enter your URL"
+                        className="bg-slate-800 border-slate-700 text-slate-200 focus:border-amber-500"
+                      />
+                      <Button className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 group">
+                        Generate QR Code
+                        <Zap className="ml-2 h-4 w-4 group-hover:animate-pulse" />
+                      </Button>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="text">
+                    <div className="space-y-4">
+                      <Input
+                        placeholder="Enter your text"
+                        className="bg-slate-800 border-slate-700 text-slate-200 focus:border-amber-500"
+                      />
+                      <Button className="w-full bg-amber-500 hover:bg-amber-600 text-slate-900 group">
+                        Generate QR Code
+                        <Zap className="ml-2 h-4 w-4 group-hover:animate-pulse" />
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+                <Button type="submit" className="mt-4">
+                  Submit
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </div>
