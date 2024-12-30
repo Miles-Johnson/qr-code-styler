@@ -8,12 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QrCode, Wand2, Zap, Shield, Eye, Palette } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Head from "next/head";
 import Image from "next/image";
 import { Prediction, PredictionError } from "@/types";
-import { useEffect } from "react";
-
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -27,9 +25,9 @@ export default function Home() {
     >("idle");
       const [activeTab, setActiveTab] = useState("url");
 
-  const startPolling = async (id: string) => {
-       let currentPrediction: Prediction | null = null
-         while (
+   const startPolling = async (id: string) => {
+        let currentPrediction: Prediction | null = null
+        while (
             currentPrediction === null ||
             currentPrediction.status !== "succeeded" &&
             currentPrediction.status !== "failed"
@@ -38,27 +36,25 @@ export default function Home() {
             const response = await fetch(`/api/predictions/${id}`, {
                 cache: "no-store",
             });
-             if (response.status !== 200) {
-                 const errorData = await response.json();
-                 setError(errorData.detail);
-                setStatus("failed")
-                 setLoading(false)
-                 return;
+            if (response.status !== 200) {
+                const errorData = await response.json();
+                setError(errorData.detail);
+                 setStatus("failed")
+                setLoading(false)
+                return;
             }
-            const updatedPrediction: Prediction = await response.json()
-              currentPrediction = updatedPrediction;
+             const updatedPrediction: Prediction = await response.json()
+             currentPrediction = updatedPrediction;
              console.log({ updatedPrediction });
             setPrediction(updatedPrediction);
-             if(updatedPrediction.status ==="succeeded" || updatedPrediction.status==="failed") {
+            if(updatedPrediction.status ==="succeeded" || updatedPrediction.status==="failed") {
                 setLoading(false);
-                  setStatus(updatedPrediction.status);
-             }
+                setStatus(updatedPrediction.status);
+            }
         }
-  }
-
-
+    }
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
+      event.preventDefault();
         setLoading(true);
         setError(null);
         const prompt = (
@@ -69,53 +65,41 @@ export default function Home() {
         ) as HTMLInputElement;
         const image = imageInput.files ? imageInput.files[0] : null;
 
-
-        let inputData: any = { prompt };
-        if (activeTab === "url") {
-            const url = (document.getElementById(
-                "url"
-            ) as HTMLInputElement).value
-            inputData = { prompt, url }
-        } else if (activeTab === "text") {
-            const text = (document.getElementById(
-                "text"
-            ) as HTMLInputElement).value
-            inputData = { prompt, text }
-        }
-
-
-         const formData = new FormData();
+        const formData = new FormData();
         formData.append("prompt", prompt);
         if (image) {
             formData.append("image", image);
         }
-
-         try {
-            const response = await fetch("/api/predictions", {
-                method: "POST",
-                 body: JSON.stringify(inputData),
-            });
+       try {
+            const response = await fetch(
+                "/api/predictions",
+                {
+                    method: "POST",
+                    body: formData,
+                }
+            );
 
              if (!response.ok) {
-                const errorData: PredictionError = await response.json();
-                 setError(errorData.detail);
-               setStatus("failed");
+                 const errorData: PredictionError = await response.json();
+                setError(errorData.detail);
+                setStatus("failed");
                 setLoading(false);
-                return;
-             }
+                 return
+            }
 
-             const data = await response.json();
-              setPredictionId(data.id);
+           const data = await response.json();
+            setPredictionId(data.id);
             setStatus("processing");
-              startPolling(data.id);
+             startPolling(data.id);
         }
-         catch (error) {
-             console.error("Error submitting form:", error);
-           setError("Failed to generate QR code. Please try again.");
+       catch (error) {
+            console.error("Error submitting form:", error);
+            setError("Failed to generate QR code. Please try again.");
              setLoading(false);
-             setStatus("failed");
-         }
+           setStatus("failed");
+        }
     };
+
 
 
 // Extract feature data for better maintainability
@@ -155,8 +139,6 @@ const exampleQRCodes = [
             "https://images.unsplash.com/photo-1590845947676-fa2576fb3ac7?w=800&auto=format&fit=crop&q=60",
     },
 ];
-
-
 
 
     return (
@@ -289,7 +271,7 @@ const exampleQRCodes = [
                                     height={300}
                                 />
                             )}
-                            <form onSubmit={handleSubmit}>
+                           <form onSubmit={handleSubmit}>
                                 <h2 className="text-2xl font-bold text-slate-50 mb-2">
                                     Start Creating Your Styled QR Code
                                 </h2>

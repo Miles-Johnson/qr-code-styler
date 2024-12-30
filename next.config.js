@@ -1,10 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  images: { unoptimized: true },
-};
+  images: {
+      remotePatterns: [
+        {
+          protocol: 'https',
+          hostname: 'replicate.delivery',
+          port: '',
+          pathname: '**',
+        },
+        {
+          protocol: "https",
+          hostname: "replicate.com",
+        },
+        {
+          protocol: "https",
+          hostname: "images.unsplash.com",
+        },
+      ],
+    },
+}
 
 module.exports = nextConfig
