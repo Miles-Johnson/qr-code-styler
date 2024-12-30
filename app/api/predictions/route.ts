@@ -1,71 +1,44 @@
-// app/api/predictions/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import Replicate from 'replicate';
-
-export const dynamic = 'force-dynamic';
+import Replicate from "replicate";
 
 const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN,
+    auth: process.env.REPLICATE_API_TOKEN,
 });
 
-export async function POST(req: NextRequest) {
-  try {
-    const formData = await req.formData();
-    const prompt = formData.get('prompt') as string;
-    const imageFile = formData.get('image') as File | null;
-
-    if (!prompt) {
-      return new NextResponse(JSON.stringify({ error: 'Prompt is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+export async function POST(req: Request) {
+    if (!process.env.REPLICATE_API_TOKEN) {
+        throw new Error(
+            "The REPLICATE_API_TOKEN environment variable is not set. See README.md for instructions on how to set it."
+        );
     }
 
-    let imageUrl = null;
-    if (imageFile) {
-        const buffer = Buffer.from(await imageFile.arrayBuffer());
-        const base64Image = buffer.toString('base64');
-        imageUrl = `data:${imageFile.type};base64,${base64Image}`;
+
+    // const data = await req.formData(); // We won't use formData for now.
+
+    const input = {
+      seed: -1,
+      // this image parameter needs to be set if it isn't included already on the client
+      image: "https://replicate.delivery/pbxt/LynL9QBVNOr4Eb1EVce8w1RPptLiHH14hmgyaZyYrlrNAmOT/norm%20small.png",
+      prompt: "optical illusion 3D maze box creative genius unreal engine black and gray, and colorful magic and spells at the background",
+      output_format: "png",
+      negative_prompt: "blurry, horror, nsfw",
+    };
+
+    try {
+        const prediction = await replicate.predictions.create({
+            version: "d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb",
+            input,
+            // Note: the version key corresponds to "miles-johnson/qr-code-generator:d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb"
+            // See https://replicate.com/miles-johnson/qr-code-generator
+        });
+
+        if (prediction?.error) {
+            return new Response(JSON.stringify({ detail: prediction.error.detail }), {
+                status: 500,
+            });
+        }
+
+        return new Response(JSON.stringify(prediction), { status: 201 });
+    } catch(error: any) {
+       return new Response(JSON.stringify({detail: error.message}), {status: 500})
     }
-
-    // Create the prediction using Replicate
-    console.log('Creating prediction with Replicate...');
-    const prediction = await replicate.predictions.create({
-      version:
-        'd9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb',
-      input: {
-        prompt: prompt,
-        image: imageUrl, // Pass either the URL or the base64 string
-        seed: -1,
-        output_format: 'png',
-        negative_prompt:
-          '(worst quality, low quality, bad anatomy, blurry, unclear, sketch, cartoon, 3D render, watermark, text,nsfw, nudity)',
-      },
-    });
-    console.log('Replicate prediction:', prediction);
-
-    return new NextResponse(
-      JSON.stringify({
-        id: prediction.id,
-        status: 'processing',
-      }),
-      {
-        status: 202,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-  } catch (error: any) {
-    console.error('Error in API route:', error);
-    return new NextResponse(
-      JSON.stringify({ error: 'An error occurred on the server' }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-  }
 }
