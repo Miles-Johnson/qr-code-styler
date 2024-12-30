@@ -7,5 +7,5 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
-[[functions]]
+[functions]
   directory = ".next/server/app/api"
