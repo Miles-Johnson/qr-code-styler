@@ -36,18 +36,18 @@ export async function POST(req: NextRequest) {
       negative_prompt: "blurry, horror, nsfw",
     };
 
-    if (image && image instanceof File) {
-      // Convert File to base64 or handle as binary
-      const arrayBuffer = await image.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-      const base64Image = buffer.toString('base64');
-      input.image = `data:${image.type};base64,${base64Image}`;
-    }
+    // if (image && image instanceof File) {
+    //   // Convert File to base64 or handle as binary
+    //   const arrayBuffer = await image.arrayBuffer();
+    //   const buffer = Buffer.from(arrayBuffer);
+    //   const base64Image = buffer.toString('base64');
+    //   input.image = `data:${image.type};base64,${base64Image}`;
+    // }
 
-    console.log("Sending to Replicate with input:", {
-      ...input,
-      image: input.image ? "<<base64 data>>" : undefined
-    });
+    // console.log("Sending to Replicate with input:", {
+    //   ...input,
+    //   image: input.image ? "<<base64 data>>" : undefined
+    // });
 
     const prediction = await replicate.predictions.create({
       version: "d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb",
