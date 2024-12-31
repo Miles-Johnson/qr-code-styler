@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         });
 
         if (prediction?.error) {
-            return new Response(JSON.stringify({ detail: prediction.error.detail }), {
+            return new Response(JSON.stringify({ detail: prediction.error}), {
                 status: 500,
             });
         }
