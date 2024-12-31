@@ -11,94 +11,93 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import Head from "next/head";
 import Image from "next/image";
-import { Prediction, PredictionError } from "@/types";
+import { Prediction } from "replicate"; // Removed PredictionError
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function Home() {
-    const [prediction, setPrediction] = useState<Prediction | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [predictionId, setPredictionId] = useState<string | null>(null);
-    const [status, setStatus] = useState<
-        "idle" | "processing" | "succeeded" | "failed"
-    >("idle");
-      const [activeTab, setActiveTab] = useState("url");
+  const [prediction, setPrediction] = useState<Prediction | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [predictionId, setPredictionId] = useState<string | null>(null);
+  const [status, setStatus] = useState<
+    "idle" | "processing" | "succeeded" | "failed"
+  >("idle");
+  const [activeTab, setActiveTab] = useState("url");
 
-   const startPolling = async (id: string) => {
-        let currentPrediction: Prediction | null = null
-        while (
-            currentPrediction === null ||
-            currentPrediction.status !== "succeeded" &&
-            currentPrediction.status !== "failed"
-        ) {
-            await sleep(1000);
-            const response = await fetch(`/api/predictions/${id}`, {
-                cache: "no-store",
-            });
-            if (response.status !== 200) {
-                const errorData = await response.json();
-                setError(errorData.detail);
-                 setStatus("failed")
-                setLoading(false)
-                return;
-            }
-             const updatedPrediction: Prediction = await response.json()
-             currentPrediction = updatedPrediction;
-             console.log({ updatedPrediction });
-            setPrediction(updatedPrediction);
-            if(updatedPrediction.status ==="succeeded" || updatedPrediction.status==="failed") {
-                setLoading(false);
-                setStatus(updatedPrediction.status);
-            }
-        }
+  const startPolling = async (id: string) => {
+    let currentPrediction: Prediction | null = null;
+    while (
+      currentPrediction === null ||
+      (currentPrediction.status !== "succeeded" &&
+        currentPrediction.status !== "failed")
+    ) {
+      await sleep(1000);
+      const response = await fetch(`/api/predictions/${id}`, {
+        cache: "no-store",
+      });
+      if (response.status !== 200) {
+        const errorData = await response.json();
+        setError(errorData.detail);
+        setStatus("failed");
+        setLoading(false);
+        return;
+      }
+      const updatedPrediction: Prediction = await response.json();
+      currentPrediction = updatedPrediction;
+      console.log({ updatedPrediction });
+      setPrediction(updatedPrediction);
+      if (
+        updatedPrediction.status === "succeeded" ||
+        updatedPrediction.status === "failed"
+      ) {
+        setLoading(false);
+        setStatus(updatedPrediction.status);
+      }
     }
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-        setLoading(true);
-        setError(null);
-        const prompt = (
-            document.getElementById("prompt") as HTMLTextAreaElement
-        ).value;
-        const imageInput = document.getElementById(
-            "image"
-        ) as HTMLInputElement;
-        const image = imageInput.files ? imageInput.files[0] : null;
+  };
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+    setError(null);
+    const prompt = (
+      document.getElementById("prompt") as HTMLTextAreaElement
+    ).value;
+    const imageInput = document.getElementById(
+      "image"
+    ) as HTMLInputElement;
+    const image = imageInput.files ? imageInput.files[0] : null;
 
-        const formData = new FormData();
-        formData.append("prompt", prompt);
-        if (image) {
-            formData.append("image", image);
-        }
-       try {
-            const response = await fetch(
-                "/api/predictions",
-                {
-                    method: "POST",
-                    body: formData,
-                }
-            );
+    const formData = new FormData();
+    formData.append("prompt", prompt);
+    if (image) {
+      formData.append("image", image);
+    }
+    try {
+      const response = await fetch("/api/predictions", {
+        method: "POST",
+        body: formData,
+      });
 
-             if (!response.ok) {
-                 const errorData: PredictionError = await response.json();
-                setError(errorData.detail);
-                setStatus("failed");
-                setLoading(false);
-                 return
-            }
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.detail);
+        setStatus("failed");
+        setLoading(false);
+        return;
+      }
 
-           const data = await response.json();
-            setPredictionId(data.id);
-            setStatus("processing");
-             startPolling(data.id);
-        }
-       catch (error) {
-            console.error("Error submitting form:", error);
-            setError("Failed to generate QR code. Please try again.");
-             setLoading(false);
-           setStatus("failed");
-        }
-    };
+      const data = await response.json();
+      setPredictionId(data.id);
+      setStatus("processing");
+      startPolling(data.id);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setError("Failed to generate QR code. Please try again.");
+      setLoading(false);
+      setStatus("failed");
+    }
+  };
 
 
 
