@@ -2,16 +2,8 @@
   command = "next build"
   publish = ".next"
 
-[dev]
-  command = "next dev"
-  targetPort = 3000
-  port = 8888
-  publish = "public"
-
-[[redirects]]
-  from = "/api/*"
-  to = "http://localhost:3000/api/:splat"
-  status = 200
-
 [functions]
-  directory = ".next/server/app/api"
+  node_bundler = "esbuild"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

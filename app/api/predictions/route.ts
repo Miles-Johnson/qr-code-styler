@@ -1,6 +1,10 @@
 import Replicate from "replicate";
 import { NextRequest, NextResponse } from 'next/server';
 
+export const maxDuration = 300; // 5 minutes
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
@@ -67,10 +71,10 @@ export async function POST(req: NextRequest) {
 }
 
 // Add configuration for larger file sizes if needed
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb'
-    }
-  }
-};
+// export const config = {
+//   api: {
+//     bodyParser: {
+//       sizeLimit: '10mb'
+//     }
+//   }
+// };
