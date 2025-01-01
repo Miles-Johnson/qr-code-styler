@@ -133,21 +133,18 @@ const features = [
 
 // Extract example QR codes data
 const exampleQRCodes = [
-    {
-        title: "Modern Minimalist",
-        image:
-            "https://images.unsplash.com/photo-1590845947698-8924d7409b56?w=800&auto=format&fit=crop&q=60",
-    },
-    {
-        title: "Artistic Blend",
-        image:
-            "https://images.unsplash.com/photo-1590845947600-2d83969e7bb4?w=800&auto=format&fit=crop&q=60",
-    },
-    {
-        title: "Brand Integration",
-        image:
-            "https://images.unsplash.com/photo-1590845947676-fa2576fb3ac7?w=800&auto=format&fit=crop&q=60",
-    },
+  {
+      title: "Modern Minimalist",
+      image: "/images/00005-2079859742.png",
+  },
+  {
+      title: "Artistic Blend",
+      image: "/images/00008-4148124438.0.png",
+  },
+  {
+      title: "Brand Integration",
+      image: "/images/Control.png",
+  },
 ];
 
 
