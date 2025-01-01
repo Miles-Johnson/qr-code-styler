@@ -266,8 +266,6 @@ const exampleQRCodes = [
                                 <Image
                                     src={prediction.output[prediction.output.length - 1]}
                                     alt="Generated QR code"
-                                    width={300}
-                                    height={300}
                                 />
                             )}
                            <form onSubmit={handleSubmit}>
