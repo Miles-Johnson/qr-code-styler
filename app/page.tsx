@@ -16,99 +16,99 @@ import { Prediction } from "replicate"; // Removed PredictionError
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function Home() {
-  const [prediction, setPrediction] = useState<Prediction | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [predictionId, setPredictionId] = useState<string | null>(null);
-  const [status, setStatus] = useState<
-    "idle" | "processing" | "succeeded" | "failed"
-  >("idle");
-  const [activeTab, setActiveTab] = useState("url");
-  const [fileName, setFileName] = useState<string | null>(null);
+    const [prediction, setPrediction] = useState<Prediction | null>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [predictionId, setPredictionId] = useState<string | null>(null);
+    const [status, setStatus] = useState<
+        "idle" | "processing" | "succeeded" | "failed"
+    >("idle");
+    const [activeTab, setActiveTab] = useState("url");
+    const [fileName, setFileName] = useState<string | null>(null);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file) {
-          setFileName(file.name);
-      } else {
-          setFileName(null)
-      }
-  };
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setFileName(file.name);
+        } else {
+            setFileName(null)
+        }
+    };
 
 
-  const startPolling = async (id: string) => {
-    let currentPrediction: Prediction | null = null;
-    while (
-      currentPrediction === null ||
-      (currentPrediction.status !== "succeeded" &&
-        currentPrediction.status !== "failed")
-    ) {
-      await sleep(1000);
-      const response = await fetch(`/api/predictions/${id}`, {
-        cache: "no-store",
-      });
-      if (response.status !== 200) {
-        const errorData = await response.json();
-        setError(errorData.detail);
-        setStatus("failed");
-        setLoading(false);
-        return;
-      }
-      const updatedPrediction: Prediction = await response.json();
-      currentPrediction = updatedPrediction;
-      console.log({ updatedPrediction });
-      setPrediction(updatedPrediction);
-      if (
-        updatedPrediction.status === "succeeded" ||
-        updatedPrediction.status === "failed"
-      ) {
-        setLoading(false);
-        setStatus(updatedPrediction.status);
-      }
-    }
-  };
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setLoading(true);
-    setError(null);
-    const prompt = (
-      document.getElementById("prompt") as HTMLTextAreaElement
-    ).value;
-    const imageInput = document.getElementById(
-      "image"
-    ) as HTMLInputElement;
-    const image = imageInput.files ? imageInput.files[0] : null;
+    const startPolling = async (id: string) => {
+        let currentPrediction: Prediction | null = null;
+        while (
+            currentPrediction === null ||
+            (currentPrediction.status !== "succeeded" &&
+                currentPrediction.status !== "failed")
+        ) {
+            await sleep(1000);
+            const response = await fetch(`/api/predictions/${id}`, {
+                cache: "no-store",
+            });
+            if (response.status !== 200) {
+                const errorData = await response.json();
+                setError(errorData.detail);
+                setStatus("failed");
+                setLoading(false);
+                return;
+            }
+            const updatedPrediction: Prediction = await response.json();
+            currentPrediction = updatedPrediction;
+            console.log({ updatedPrediction });
+            setPrediction(updatedPrediction);
+            if (
+                updatedPrediction.status === "succeeded" ||
+                updatedPrediction.status === "failed"
+            ) {
+                setLoading(false);
+                setStatus(updatedPrediction.status);
+            }
+        }
+    };
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setLoading(true);
+        setError(null);
+        const prompt = (
+            document.getElementById("prompt") as HTMLTextAreaElement
+        ).value;
+        const imageInput = document.getElementById(
+            "image"
+        ) as HTMLInputElement;
+        const image = imageInput.files ? imageInput.files[0] : null;
 
-    const formData = new FormData();
-    formData.append("prompt", prompt);
-    if (image) {
-      formData.append("image", image);
-    }
-    try {
-      const response = await fetch("/api/predictions", {
-        method: "POST",
-        body: formData,
-      });
+        const formData = new FormData();
+        formData.append("prompt", prompt);
+        if (image) {
+            formData.append("image", image);
+        }
+        try {
+            const response = await fetch("/api/predictions", {
+                method: "POST",
+                body: formData,
+            });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        setError(errorData.detail);
-        setStatus("failed");
-        setLoading(false);
-        return;
-      }
+            if (!response.ok) {
+                const errorData = await response.json();
+                setError(errorData.detail);
+                setStatus("failed");
+                setLoading(false);
+                return;
+            }
 
-      const data = await response.json();
-      setPredictionId(data.id);
-      setStatus("processing");
-      startPolling(data.id);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      setError("Failed to generate QR code. Please try again.");
-      setLoading(false);
-      setStatus("failed");
-    }
-  };
+            const data = await response.json();
+            setPredictionId(data.id);
+            setStatus("processing");
+            startPolling(data.id);
+        } catch (error) {
+            console.error("Error submitting form:", error);
+            setError("Failed to generate QR code. Please try again.");
+            setLoading(false);
+            setStatus("failed");
+        }
+    };
 
 
 
@@ -225,20 +225,25 @@ return (
               key={index}
               className="bg-slate-900/50 border-slate-800 group hover:border-amber-500/50 transition-colors"
             >
-              <CardContent className="p-6">
-                <div className="relative overflow-hidden rounded-lg">
-                  <Image
-                    src={qr.image}
-                    alt={`QR Code Example - ${qr.title}`}
-                    width={300}
-                    height={300}
-                    className="w-full transition-transform duration-300 group-hover:scale-105"
-                  />
-                </div>
-                <p className="text-slate-400 mt-4 group-hover:text-amber-500 transition-colors">
-                  {qr.title}
-                </p>
-              </CardContent>
+                
+<CardContent className="p-6">
+    <div className="relative overflow-hidden rounded-lg" style={{width: '100%', height:'300px'}}>
+        <Image
+            src={qr.image}
+            alt={`QR Code Example - ${qr.title}`}
+          layout="fill"
+            objectFit="contain"
+            className="transition-transform duration-300 group-hover:scale-105 rounded-md"
+            style={{ position: 'absolute'}}
+
+        />
+    </div>
+    <p className="text-slate-400 mt-4 group-hover:text-amber-500 transition-colors">
+        {qr.title}
+    </p>
+</CardContent>
+
+    
             </Card>
           ))}
         </div>
@@ -258,41 +263,46 @@ return (
           ))}
         </div>
 
-        {/* Create Section */}
-        <div className="max-w-3xl mx-auto">
-          <Card className="bg-slate-900/50 border-slate-800">
-            <CardContent className="p-8">
-              {error && <div className="text-red-500 mb-4">{error}</div>}
-              {status === "processing" && loading && (
-                  <div className="text-slate-400 mb-4">
-                      Generating QR code... please wait
-                  </div>
-              )}
-              {prediction?.output && (
-                <Image
-                  src={prediction.output[prediction.output.length - 1]}
-                  alt="Generated QR code"
-                  width={300}
-                  height={300}
-                />
-              )}
-              <form onSubmit={handleSubmit}>
+       {/* Create Section */}
+<div className="max-w-3xl mx-auto">
+    <Card className="bg-slate-900/50 border-slate-800">
+        <CardContent className="p-8 flex flex-col items-center">
+            {error && <div className="text-red-500 mb-4">{error}</div>}
+            {status === "processing" && loading && (
+                <div className="text-slate-400 mb-4">
+                    Generating QR code... please wait
+                </div>
+            )}
+            {prediction?.output && (
+   <div className="relative mb-4" style={{width: '100%', height:'768px'}}>
+        <Image
+            src={prediction.output[prediction.output.length - 1]}
+            alt="Generated QR code"
+            layout="fill"
+            objectFit="contain"
+               style={{
+                 position: "absolute"
+               }}
+        />
+    </div>
+)}
+            <form onSubmit={handleSubmit}>
                 <h2 className="text-2xl font-bold text-slate-50 mb-2">
-                  Start Creating Your Styled QR Code
+                    Start Creating Your Styled QR Code
                 </h2>
                 <h3 className="text-lg text-slate-50 mb-2">
-                  Style Description
+                    Style Description
                 </h3>
                 <Textarea
-                  id="prompt"
-                  placeholder="Describe what you want your QR code to look like..."
-                  className="bg-slate-800 border-slate-700 text-slate-200 focus:border-amber-500 resize-none mb-4"
+                    id="prompt"
+                    placeholder="Describe what you want your QR code to look like..."
+                    className="bg-slate-800 border-slate-700 text-slate-200 focus:border-amber-500 resize-none mb-4"
                 />
                 <p className="text-slate-400 text-sm mb-6">
-                  Be specific about the style, colors, and artistic elements you
-                  want in your QR code
-                </p>        
-                 <div
+                    Be specific about the style, colors, and artistic elements you
+                    want in your QR code
+                </p>
+                <div
                     className="w-full border-dashed border-2 border-slate-700 rounded-lg p-4 mb-6 cursor-pointer"
                     onClick={() => document.getElementById('image')?.click()}
                 >
@@ -307,16 +317,16 @@ return (
                 <input type="file" id="image" className="hidden"  onChange={handleFileChange} />
 
                 <Button
-                  type="submit"
-                  className="mt-4"
-                  disabled={loading}
+                    type="submit"
+                    className="mt-4"
+                    disabled={loading}
                 >
-                  {loading ? "Submitting..." : "Submit"}
+                    {loading ? "Submitting..." : "Submit"}
                 </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+            </form>
+        </CardContent>
+    </Card>
+</div>
       </section>
 
       {/* Footer */}
