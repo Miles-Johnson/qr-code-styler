@@ -202,13 +202,17 @@ return (
           works of art.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Button
-            size="lg"
-            className="bg-amber-500 hover:bg-amber-600 text-slate-900 group"
-          >
-            Start Creating
-            <Wand2 className="ml-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
-          </Button>
+<Button
+  size="lg"
+  className="bg-amber-500 hover:bg-amber-600 text-slate-900 group"
+  onClick={() => {
+    const target = document.querySelector(".p-8");
+    target?.scrollIntoView({ behavior: "smooth" });
+  }}
+>
+  Start Creating
+  <Wand2 className="ml-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
+</Button>
           <Button
             size="lg"
             variant="outline"
@@ -293,6 +297,7 @@ return (
                 <h3 className="text-lg text-slate-50 mb-2">
                     Style Description
                 </h3>
+                <a href="/api/auth/login">Login</a>
                 <Textarea
                     id="prompt"
                     placeholder="Describe what you want your QR code to look like..."
