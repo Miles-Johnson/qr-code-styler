@@ -35,7 +35,6 @@ export default function Home() {
         }
     };
 
-
     const startPolling = async (id: string) => {
         let currentPrediction: Prediction | null = null;
         while (
@@ -147,7 +146,6 @@ const exampleQRCodes = [
   },
 ];
 
-
 return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950">
       {/* Header */}
@@ -163,12 +161,12 @@ return (
             </span>
           </Link>
           <div className="flex gap-4">
-            <Button
-              variant="ghost"
-              className="text-slate-200 hover:text-amber-500"
-            >
-              Sign In
-            </Button>
+            <a href="/api/auth/login" className="text-slate-200 hover:text-amber-500">
+              Login
+            </a>
+            <a href="/api/auth/logout" className="text-slate-200 hover:text-amber-500">
+              Logout
+            </a>
             <Button
               className="bg-amber-500 hover:bg-amber-600 text-slate-900"
               onClick={() => {
@@ -297,7 +295,6 @@ return (
                 <h3 className="text-lg text-slate-50 mb-2">
                     Style Description
                 </h3>
-                <a href="/api/auth/login">Login</a>
                 <Textarea
                     id="prompt"
                     placeholder="Describe what you want your QR code to look like..."
