@@ -9,6 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QrCode, Wand2, Zap, Shield, Eye, Palette } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import LoginButton from "@/components/LoginButton";
+import AuthCheck from "@/components/AuthCheck";
 import Head from "next/head";
 import Image from "next/image";
 import { Prediction } from "replicate"; // Removed PredictionError
@@ -161,12 +164,7 @@ return (
             </span>
           </Link>
           <div className="flex gap-4">
-            <a href="/api/auth/login" className="text-slate-200 hover:text-amber-500">
-              Login
-            </a>
-            <a href="/api/auth/logout" className="text-slate-200 hover:text-amber-500">
-              Logout
-            </a>
+            <LoginButton />
             <Button
               className="bg-amber-500 hover:bg-amber-600 text-slate-900"
               onClick={() => {
@@ -266,7 +264,8 @@ return (
         </div>
 
        {/* Create Section */}
-<div className="max-w-3xl mx-auto">
+<AuthCheck>
+  <div className="max-w-3xl mx-auto">
     <Card className="bg-slate-900/50 border-slate-800">
         <CardContent className="p-8 flex flex-col items-center">
             {error && <div className="text-red-500 mb-4">{error}</div>}
@@ -328,7 +327,8 @@ return (
             </form>
         </CardContent>
     </Card>
-</div>
+  </div>
+</AuthCheck>
       </section>
 
       {/* Footer */}

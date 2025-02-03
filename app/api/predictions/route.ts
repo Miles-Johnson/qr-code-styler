@@ -1,5 +1,7 @@
 import Replicate from "replicate";
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 export const maxDuration = 60; // 5 minutes
 export const dynamic = 'force-dynamic';
@@ -10,6 +12,15 @@ const replicate = new Replicate({
 });
 
 export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  
+  if (!session) {
+    return NextResponse.json(
+      { detail: "You must be signed in to create QR codes" },
+      { status: 401 }
+    );
+  }
+
   if (!process.env.REPLICATE_API_TOKEN) {
     return NextResponse.json({
       detail: "REPLICATE_API_TOKEN not set"
@@ -28,7 +39,6 @@ export async function POST(req: NextRequest) {
       console.log("Image size:", image.size);
       console.log("Image type:", image.type);
     }
-
 
     const input: any = {
       seed: -1,
@@ -58,20 +68,19 @@ export async function POST(req: NextRequest) {
       image: input.image ? "<<base64 data>>" : undefined
     });
 
-
     let prediction;
-      try {
-          prediction = await replicate.predictions.create({
-          version: "d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb",
-          input,
-          });
-      } catch (replicateError:any) {
-          console.error("Error during Replicate API call:", replicateError);
-          return NextResponse.json({
-              detail: "Error communicating with Replicate API",
-              error: replicateError.message,
-            }, { status: 500 });
-      }
+    try {
+      prediction = await replicate.predictions.create({
+        version: "d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb",
+        input,
+      });
+    } catch (replicateError:any) {
+      console.error("Error during Replicate API call:", replicateError);
+      return NextResponse.json({
+        detail: "Error communicating with Replicate API",
+        error: replicateError.message,
+      }, { status: 500 });
+    }
 
     console.log("Replicate response:", prediction);
 
@@ -80,7 +89,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!prediction) {
-        return NextResponse.json({detail: "No prediction returned from Replicate API"}, {status:500});
+      return NextResponse.json({detail: "No prediction returned from Replicate API"}, {status:500});
     }
 
     return NextResponse.json(prediction, { status: 201 });
