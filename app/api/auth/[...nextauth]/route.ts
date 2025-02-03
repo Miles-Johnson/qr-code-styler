@@ -8,7 +8,12 @@ interface CustomSession extends Session {
   accessToken?: string;
 }
 
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error('Please provide NEXTAUTH_SECRET environment variable')
+}
+
 export const authOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
