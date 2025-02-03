@@ -9,6 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QrCode, Wand2, Zap, Shield, Eye, Palette } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import LoginButton from "@/components/LoginButton";
+import AuthCheck from "@/components/AuthCheck";
 import Head from "next/head";
 import Image from "next/image";
 import { Prediction } from "replicate"; // Removed PredictionError
@@ -34,7 +37,6 @@ export default function Home() {
             setFileName(null)
         }
     };
-
 
     const startPolling = async (id: string) => {
         let currentPrediction: Prediction | null = null;
@@ -147,7 +149,6 @@ const exampleQRCodes = [
   },
 ];
 
-
 return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950">
       {/* Header */}
@@ -163,12 +164,7 @@ return (
             </span>
           </Link>
           <div className="flex gap-4">
-            <Button
-              variant="ghost"
-              className="text-slate-200 hover:text-amber-500"
-            >
-              Sign In
-            </Button>
+            <LoginButton />
             <Button
               className="bg-amber-500 hover:bg-amber-600 text-slate-900"
               onClick={() => {
@@ -268,7 +264,8 @@ return (
         </div>
 
        {/* Create Section */}
-<div className="max-w-3xl mx-auto">
+<AuthCheck>
+  <div className="max-w-3xl mx-auto">
     <Card className="bg-slate-900/50 border-slate-800">
         <CardContent className="p-8 flex flex-col items-center">
             {error && <div className="text-red-500 mb-4">{error}</div>}
@@ -297,7 +294,6 @@ return (
                 <h3 className="text-lg text-slate-50 mb-2">
                     Style Description
                 </h3>
-                <a href="/api/auth/login">Login</a>
                 <Textarea
                     id="prompt"
                     placeholder="Describe what you want your QR code to look like..."
@@ -331,7 +327,8 @@ return (
             </form>
         </CardContent>
     </Card>
-</div>
+  </div>
+</AuthCheck>
       </section>
 
       {/* Footer */}

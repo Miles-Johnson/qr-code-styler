@@ -1,0 +1,9 @@
+2023-10-XX - Scroll Functionality Update
+
+Updated app/page.tsx to add scroll-to functionality for the "Start Creating" button. The button now scrolls smoothly to the element with class .p-8 when clicked.
+
+Changes made:
+- Added onClick event to the "Start Creating" Button component.
+- Implemented scrollIntoView method with smooth behavior.
+
+Verified that the change works as expected.
