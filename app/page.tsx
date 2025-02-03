@@ -212,7 +212,7 @@ return (
           <Button
             size="lg"
             variant="outline"
-            className="text-slate-200 hover:text-amber-500"
+            className="text-slate-900 hover:text-amber-500 bg-white hover:bg-white/90"
           >
             View Gallery
           </Button>
@@ -319,7 +319,7 @@ return (
 
                 <Button
                     type="submit"
-                    className="mt-4"
+                    className="mt-4 bg-amber-500 hover:bg-amber-600 text-slate-900"
                     disabled={loading}
                 >
                     {loading ? "Submitting..." : "Submit"}

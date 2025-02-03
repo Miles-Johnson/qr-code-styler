@@ -7,6 +7,13 @@ import {
   DialogContent,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { User } from "lucide-react"
 import SignInForm from "./SignInForm"
 
 export default function LoginButton() {
@@ -14,13 +21,25 @@ export default function LoginButton() {
 
   if (session) {
     return (
-      <Button
-        variant="outline"
-        className="text-slate-200 hover:text-amber-500"
-        onClick={() => signOut()}
-      >
-        Sign out
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="text-slate-900 hover:text-amber-500 bg-white hover:bg-white/90 gap-2"
+          >
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">{session.user?.email}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56 bg-slate-900 border-slate-800">
+          <DropdownMenuItem
+            className="text-slate-200 focus:text-amber-500 focus:bg-slate-800 cursor-pointer"
+            onClick={() => signOut()}
+          >
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     )
   }
 
@@ -29,7 +48,7 @@ export default function LoginButton() {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="text-slate-200 hover:text-amber-500"
+          className="text-slate-900 hover:text-amber-500 bg-white hover:bg-white/90"
         >
           Sign in
         </Button>
