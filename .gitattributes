@@ -1,0 +1,39 @@
+# Auto detect text files and normalize line endings
+* text=auto eol=lf
+
+# Source code
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.json text
+*.css text
+*.scss text
+*.html text
+*.md text
+*.yml text
+*.yaml text
+
+# Config files
+*.config.js text
+*.config.ts text
+.env* text
+.gitignore text
+.gitattributes text
+.eslintrc* text
+
+# Graphics
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.svg text
+
+# Documentation
+*.pdf binary
+*.doc binary
+*.docx binary
+
+# Enforce checkout with LF for specific files
+package.json text eol=lf
+package-lock.json text eol=lf
