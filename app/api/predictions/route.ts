@@ -2,6 +2,9 @@ import Replicate from "replicate";
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
+import { getUserByEmail } from "@/src/queries/select";
+import { insertGeneratedImage } from "@/src/queries/insert";
+import { put } from '@vercel/blob';
 
 export const maxDuration = 60; // 5 minutes
 export const dynamic = 'force-dynamic';
@@ -13,8 +16,9 @@ const replicate = new Replicate({
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
+  const userEmail = session?.user?.email;
   
-  if (!session) {
+  if (!userEmail) {
     return NextResponse.json(
       { detail: "You must be signed in to create QR codes" },
       { status: 401 }
@@ -47,7 +51,7 @@ export async function POST(req: NextRequest) {
       negative_prompt: "blurry, horror, nsfw",
     };
 
-    // Handle image conversion, and handle potential errors
+    // Handle image conversion for Replicate
     if (image && image instanceof File) {
       try {
         const arrayBuffer = await image.arrayBuffer();
@@ -68,12 +72,14 @@ export async function POST(req: NextRequest) {
       image: input.image ? "<<base64 data>>" : undefined
     });
 
+    // Create prediction
     let prediction;
     try {
       prediction = await replicate.predictions.create({
         version: "d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb",
         input,
       });
+      console.log("Replicate prediction created:", prediction);
     } catch (replicateError:any) {
       console.error("Error during Replicate API call:", replicateError);
       return NextResponse.json({
@@ -82,16 +88,47 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log("Replicate response:", prediction);
-
-    if (prediction?.error) {
-      return NextResponse.json({ detail: prediction.error }, { status: 500 });
-    }
-
     if (!prediction) {
-      return NextResponse.json({detail: "No prediction returned from Replicate API"}, {status:500});
+      console.error("No prediction returned from Replicate API");
+      return NextResponse.json({
+        detail: "No prediction returned from Replicate API"
+      }, { status: 500 });
     }
 
+    if (prediction.error) {
+      console.error("Prediction error:", prediction.error);
+      return NextResponse.json({
+        detail: prediction.error
+      }, { status: 500 });
+    }
+
+    // Get user from database
+    const user = await getUserByEmail(userEmail);
+    if (!user) {
+      console.error("User not found in database");
+      return NextResponse.json(prediction, { status: 201 }); // Return prediction even if user not found
+    }
+
+    // Store original QR code if provided
+    let originalQrUrl = '';
+    if (image instanceof File) {
+      try {
+        console.log("Storing original QR code...");
+        const originalBlob = await put(image.name, image, {
+          access: 'public',
+          token: process.env.BLOB_READ_WRITE_TOKEN,
+        });
+        originalQrUrl = originalBlob.url;
+        console.log("Original QR code stored at:", originalQrUrl);
+      } catch (storageError) {
+        console.error("Error storing original QR code:", storageError);
+        // Continue without storing original QR code
+      }
+    }
+
+    // Return the prediction immediately to start polling
+    // We'll store the generated image later when it's ready
+    console.log("Returning prediction for polling:", prediction);
     return NextResponse.json(prediction, { status: 201 });
   } catch (error: any) {
     console.error("Full error:", error);

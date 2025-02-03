@@ -1,10 +1,10 @@
 import { db } from '../db';
-import { InsertPost, InsertUser, postsTable, usersTable } from '../schema';
+import { generatedImages, type NewGeneratedImage, type NewUser, users } from '../schema';
 
-export async function createUser(data: InsertUser) {
-  await db.insert(usersTable).values(data);
+export async function insertUser(user: NewUser) {
+  return await db.insert(users).values(user).returning();
 }
 
-export async function createPost(data: InsertPost) {
-  await db.insert(postsTable).values(data);
+export async function insertGeneratedImage(image: NewGeneratedImage) {
+  return await db.insert(generatedImages).values(image).returning();
 }

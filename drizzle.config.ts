@@ -1,13 +1,28 @@
-import { config } from 'dotenv';
-import { defineConfig } from "drizzle-kit";
+import type { Config } from 'drizzle-kit';
+import * as dotenv from 'dotenv';
 
-config({ path: '.env' });
+// Load environment variables from .env.local
+dotenv.config({ path: '.env.local' });
 
-export default defineConfig({
-  schema: "./src/schema.ts",
-  out: "./migrations",
-  dialect: "postgresql",
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+
+// Parse connection string
+const connectionString = new URL(process.env.DATABASE_URL);
+const [username, password] = connectionString.username.split(':');
+const database = connectionString.pathname.slice(1);
+
+export default {
+  schema: './src/schema.ts',
+  out: './migrations',
+  dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    host: connectionString.hostname,
+    port: parseInt(connectionString.port || '5432'),
+    user: username,
+    password: password,
+    database: database,
+    ssl: true,
   },
-});
+} satisfies Config;
