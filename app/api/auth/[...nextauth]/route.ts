@@ -74,12 +74,16 @@ export const authOptions: AuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider === "google" && user.email) {
         try {
+          console.log('Google sign-in attempt for:', user.email);
+          console.log('Current NODE_ENV:', process.env.NODE_ENV);
+          
           // Check if user exists
           let dbUser = await getUserByEmail(user.email);
+          console.log('Database lookup result:', dbUser ? 'User found' : 'User not found');
           
           // If user doesn't exist, create them
           if (!dbUser) {
-            console.log('Creating new user for:', user.email);
+            console.log('Attempting to create new user for:', user.email);
             const [newUser] = await insertUser({
               email: user.email,
               name: user.name || null,
@@ -90,12 +94,17 @@ export const authOptions: AuthOptions = {
               createdAt: new Date(),
             });
             dbUser = newUser;
-            console.log('Created new user:', dbUser);
+            console.log('Successfully created new user:', dbUser);
           }
           
           return true;
         } catch (error) {
-          console.error('Error in signIn callback:', error);
+          console.error('Detailed error in signIn callback:', {
+            error,
+            email: user.email,
+            provider: account.provider,
+            env: process.env.NODE_ENV
+          });
           return false;
         }
       }
