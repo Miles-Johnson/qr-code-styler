@@ -31,10 +31,18 @@
    - Database query efficiency
 
 ## Known Issues
-- Gallery images may fail to load if NEXTAUTH_URL is not properly configured in production
+- NEXTAUTH_URL in production must be updated to https://www.qr-code-styler.com
+- Google OAuth redirect URI must be configured in Google Cloud Console
 
 ## Fixed Issues
 - Database tables missing in production (fixed 2/12/2025)
   - Successfully ran migrations
   - Created users and generated_images tables
   - Verified database connection working
+
+## Authentication System
+- NextAuth.js with dual authentication:
+  - Google OAuth sign-in
+  - Email/password credentials
+- Database integration for user management
+- JWT-based session handling

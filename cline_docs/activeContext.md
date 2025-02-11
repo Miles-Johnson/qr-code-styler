@@ -48,6 +48,19 @@
   - Set up foreign key relationships
   - Verified successful table creation
 
+## Authentication Updates
+- Restored Google OAuth provider in NextAuth.js
+- Environment variables required in production:
+  ```
+  NEXTAUTH_URL=https://www.qr-code-styler.com
+  GOOGLE_CLIENT_ID=[existing-id]
+  GOOGLE_CLIENT_SECRET=[existing-secret]
+  NEXTAUTH_SECRET=[existing-secret]
+  ```
+- Google OAuth Configuration:
+  - Authorized redirect URI must be: https://www.qr-code-styler.com/api/auth/callback/google
+  - Ensure Google Cloud Console project has correct configuration
+
 ## Technical Notes
 - Images are stored in Vercel Blob storage
 - URLs are stored in PostgreSQL database

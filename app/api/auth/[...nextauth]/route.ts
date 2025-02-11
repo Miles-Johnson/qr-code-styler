@@ -12,13 +12,11 @@ import Google from "next-auth/providers/google";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
-    accessToken?: string;
     user: {
       id: string;
       email: string;
       name?: string | null;
       role: string;
-      image?: string | null;
     } & DefaultSession["user"]
   }
 
@@ -31,7 +29,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     role?: string;
-    accessToken?: string;
   }
 }
 
@@ -104,19 +101,9 @@ export const authOptions: AuthOptions = {
       }
       return true;
     },
-    async jwt({ token, account, user }) {
-      console.log('JWT Callback - Input:', { token, account, user });
-      
-      if (account) {
-        token.accessToken = account.access_token;
-      }
-      
-      // If we have user data from sign in, use that
+    async jwt({ token, user, account }) {
       if (user?.email) {
-        console.log('Looking up user by email from sign in:', user.email);
         const dbUser = await getUserByEmail(user.email);
-        console.log('Database user found from sign in:', dbUser);
-        
         if (dbUser) {
           token.id = dbUser.id;
           token.role = dbUser.role;
@@ -131,42 +118,13 @@ export const authOptions: AuthOptions = {
           }
         }
       }
-      // If we don't have user data but have email in token, look up user
-      else if (token.email && !token.id) {
-        console.log('Looking up user by email from token:', token.email);
-        const dbUser = await getUserByEmail(token.email);
-        console.log('Database user found from token:', dbUser);
-        
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.role = dbUser.role;
-          
-          // Update last login time
-          try {
-            await db.update(users)
-              .set({ lastLogin: new Date() })
-              .where(eq(users.id, dbUser.id));
-          } catch (error) {
-            console.error('Error updating last login:', error);
-          }
-        }
-      }
-      
       return token;
     },
     async session({ session, token }) {
-      console.log('Session Callback - Input:', { session, token });
-      
-      if (token.accessToken) {
-        session.accessToken = token.accessToken;
-      }
-      
       if (token.id && token.role) {
         session.user.id = token.id;
         session.user.role = token.role;
       }
-      
-      console.log('Session Callback - Output:', session);
       return session;
     }
   },
