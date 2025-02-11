@@ -4,13 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "cross-env NODE_OPTIONS=--no-warnings next dev",
+    "dev": "cross-env NODE_OPTIONS=--no-warnings NODE_ENV=development next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "migrate": "tsx src/migrate.ts",
+    "migrate:dev": "cross-env NODE_ENV=development tsx src/migrate.ts",
     "test-db": "tsx src/test-db.ts",
-    "test-insert": "tsx src/test-insert.ts"
+    "test-db:dev": "cross-env NODE_ENV=development tsx src/test-db.ts",
+    "test-insert": "tsx src/test-insert.ts",
+    "test-insert:dev": "cross-env NODE_ENV=development tsx src/test-insert.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

@@ -6,16 +6,22 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is required');
+// Use DEV_DATABASE_URL in development, DATABASE_URL in production
+const DATABASE_URL = process.env.NODE_ENV === 'development' 
+  ? process.env.DEV_DATABASE_URL 
+  : process.env.DATABASE_URL;
+
+if (!DATABASE_URL) {
+  throw new Error('Database URL environment variable is required');
 }
 
-const sql = neon(process.env.DATABASE_URL);
+const sql = neon(DATABASE_URL);
 const db = drizzle(sql, { schema: schema });
 
 const main = async () => {
   try {
     console.log('Starting migration...');
+    console.log('Using database:', process.env.NODE_ENV === 'development' ? 'development' : 'production');
     
     // First, try to drop existing tables if they exist
     try {
