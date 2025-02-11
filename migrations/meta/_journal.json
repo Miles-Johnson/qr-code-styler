@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1736144419190,
-      "tag": "0000_medical_robin_chapel",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1738564023746,
-      "tag": "0001_large_morph",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1739085078546,
-      "tag": "0002_sparkling_piledriver",
+      "when": 1739262986898,
+      "tag": "0000_opposite_timeslip",
       "breakpoints": true
     }
   ]

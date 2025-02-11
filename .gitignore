@@ -26,6 +26,9 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
+.env.*
+!.env.example
 
 # vercel
 .vercel
@@ -36,3 +39,25 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+
+# IDE and Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Database and Migration
+*.sqlite
+*.sqlite3
+*.db
+drizzle/
+
+# Build and Cache
+.cache/
+dist/
+.temp/
+.tmp/
+
+# Logs
+*.log
+logs/

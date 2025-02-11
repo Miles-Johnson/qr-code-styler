@@ -4,7 +4,10 @@ export const users = pgTable('users', {
   id: uuid('id').defaultRandom().primaryKey(),
   email: text('email').notNull().unique(),
   name: text('name'),
+  hashedPassword: text('hashed_password').notNull().default('$2a$10$5m6escv2tz/zapH6fMUkDeKfSBwuvE7sMGHLv75gkINil5JQHOdhC'),
   role: text('role').notNull().default('user'),
+  emailVerified: boolean('email_verified').notNull().default(false),
+  lastLogin: timestamp('last_login'),
   createdAt: timestamp('created_at').defaultNow(),
 });
 
