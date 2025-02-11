@@ -1,31 +1,31 @@
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
-import * as schema from './schema.js';
-import * as dotenv from 'dotenv';
+import { db } from './db.js';
+import { users } from './schema.js';
+import { eq } from 'drizzle-orm';
+import bcrypt from 'bcryptjs';
 
-dotenv.config({ path: '.env.local' });
-
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql, { schema: schema });
-
-const main = async () => {
+async function main() {
   try {
-    const result = await db.insert(schema.users).values({
+    // Hash a test password
+    const hashedPassword = await bcrypt.hash('testpassword123', 10);
+
+    // Insert a test user
+    const result = await db.insert(users).values({
       email: 'test@example.com',
       name: 'Test User',
-      role: 'user'
+      role: 'user',
+      hashedPassword,
+      emailVerified: false
     }).returning();
-    
+
     console.log('Inserted user:', result);
 
-    // Verify we can read the user back
-    const users = await db.query.users.findMany();
-    console.log('All users:', users);
+    // Query the user back
+    const queriedUser = await db.select().from(users).where(eq(users.email, 'test@example.com'));
+    console.log('Queried user:', queriedUser);
+
   } catch (error) {
-    console.error('Error inserting test user:', error);
-    process.exit(1);
+    console.error('Error:', error);
   }
-  process.exit(0);
-};
+}
 
 main();
