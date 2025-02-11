@@ -32,4 +32,9 @@
 
 ## Known Issues
 - Gallery images may fail to load if NEXTAUTH_URL is not properly configured in production
-- Need to verify database connections in production environment
+
+## Fixed Issues
+- Database tables missing in production (fixed 2/12/2025)
+  - Successfully ran migrations
+  - Created users and generated_images tables
+  - Verified database connection working

@@ -41,6 +41,13 @@
    - Image domains are properly whitelisted
    - Database connections are working
 
+## Recent Database Changes
+- Applied migrations to production database (2/12/2025)
+  - Created 'users' table
+  - Created 'generated_images' table
+  - Set up foreign key relationships
+  - Verified successful table creation
+
 ## Technical Notes
 - Images are stored in Vercel Blob storage
 - URLs are stored in PostgreSQL database
