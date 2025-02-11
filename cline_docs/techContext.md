@@ -1,38 +1,86 @@
 # Technical Context
 
-## Technology Stack
-- **Frontend**: Next.js 13.5.1
-- **Database**: PostgreSQL (Neon)
-- **ORM**: Drizzle ORM
-- **Authentication**: NextAuth.js
-- **Image Storage**: Vercel Blob Storage
-- **Styling**: Tailwind CSS
+## Core Technologies
+
+### Frontend
+- Next.js 14 with App Router
+- React 18
+- TypeScript
+- Tailwind CSS
+- shadcn/ui components
+
+### Backend
+- Next.js API Routes
+- PostgreSQL with Neon
+- Drizzle ORM
+- NextAuth.js for authentication
+
+### Image Processing
+- Replicate API for image generation
+- Vercel Blob Storage for image hosting
+- Next.js Image component for optimization
+
+## Infrastructure
+
+### Database
+- Neon PostgreSQL
+- Connection pooling enabled
+- Separate dev/prod databases
+- Environment-specific connection strings
+
+### Storage
+- Vercel Blob Storage for images
+- Public access configuration
+- Blob read/write token required
+
+### Authentication
+- NextAuth.js with JWT strategy
+- Google OAuth provider
+- Credentials provider
+- Environment-specific callback URLs
+
+## Configuration Requirements
+
+### Environment Variables
+```
+REPLICATE_API_TOKEN=
+DATABASE_URL=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=
+BLOB_READ_WRITE_TOKEN=
+DEV_DATABASE_URL=
+```
+
+### Next.js Configuration
+```javascript
+// Image domains for next/image
+remotePatterns: [
+  {
+    protocol: 'https',
+    hostname: 'replicate.delivery',
+  },
+  {
+    protocol: 'https',
+    hostname: '*.public.blob.vercel-storage.com',
+  }
+]
+```
 
 ## Development Setup
-### Database Configuration
-- Production Database: Neon PostgreSQL (DATABASE_URL)
-- Development Database: Separate Neon instance (DEV_DATABASE_URL)
-- Environment-based switching using NODE_ENV
 
-### Database Schema
-- Users table for authentication and user management
-- Generated Images table for storing QR code transformations
-- Relationships maintained through foreign keys
+### Local Development
+1. Install dependencies: `npm install`
+2. Set up .env.local
+3. Run development server: `npm run dev`
 
-## Technical Constraints
-- Using free tier services where possible
-- Keeping complexity minimal for maintainability
-- Focus on developer-friendly tools and practices
+### Database Management
+1. Create migrations: `npm run db:generate`
+2. Apply migrations: `npm run db:push`
+3. Type generation: `npm run db:types`
 
-## Environment Variables
-- DATABASE_URL: Production database connection
-- DEV_DATABASE_URL: Development database connection
-- BLOB_READ_WRITE_TOKEN: Vercel Blob storage access
-- REPLICATE_API_TOKEN: For AI image processing
-- Various auth-related tokens (Google, NextAuth)
-
-## Development Tools
-- drizzle-kit for database migrations
-- cross-env for environment variable management
-- TypeScript for type safety
-- ESLint for code quality
+### Production Deployment
+1. Configure environment variables
+2. Verify database connections
+3. Set NEXTAUTH_URL to deployment URL

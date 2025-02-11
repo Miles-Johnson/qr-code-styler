@@ -67,7 +67,12 @@ export async function GET(request: NextRequest) {
     // Get user's images with pagination
     try {
       const images = await getGeneratedImagesByUserId(session.user.id);
-      console.log(`Found ${images.length} images for user ${session.user.id}`);
+      console.log('Images Route - Query Results:', {
+        userId: session.user.id,
+        imageCount: images.length,
+        imageUrls: images.map(img => img.imageUrl),
+        timestamps: images.map(img => img.createdAt)
+      });
       
       // Return empty array if no images found
       if (!images || images.length === 0) {
