@@ -4,12 +4,12 @@ import * as dotenv from 'dotenv';
 // Load environment variables from .env.local
 dotenv.config({ path: '.env.local' });
 
-if (!process.env.POSTGRES_URL) {
-  throw new Error('POSTGRES_URL environment variable is required');
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
 }
 
 // Parse connection string
-const connectionString = new URL(process.env.POSTGRES_URL);
+const connectionString = new URL(process.env.DATABASE_URL);
 const [username, password] = connectionString.username.split(':');
 const database = connectionString.pathname.slice(1);
 

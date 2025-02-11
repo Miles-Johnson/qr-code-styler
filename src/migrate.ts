@@ -6,11 +6,11 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-if (!process.env.POSTGRES_URL) {
-  throw new Error('POSTGRES_URL environment variable is required');
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
 }
 
-const sql = neon(process.env.POSTGRES_URL);
+const sql = neon(process.env.DATABASE_URL);
 const db = drizzle(sql, { schema: schema });
 
 const main = async () => {
