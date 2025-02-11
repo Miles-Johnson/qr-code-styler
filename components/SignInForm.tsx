@@ -86,6 +86,7 @@ export default function SignInForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="bg-slate-800 border-slate-700 text-slate-200"
+                autoComplete="username"
                 required
               />
             </div>
@@ -96,6 +97,7 @@ export default function SignInForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="bg-slate-800 border-slate-700 text-slate-200"
+                autoComplete="current-password"
                 required
               />
             </div>

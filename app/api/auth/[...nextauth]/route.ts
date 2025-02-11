@@ -1,22 +1,53 @@
-import NextAuth from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { JWT } from "next-auth/jwt"
-import { Session } from "next-auth"
+import type { AuthOptions } from "next-auth";
+import type { DefaultSession } from "next-auth";
+import type { JWT } from "next-auth/jwt";
+import bcrypt from "bcryptjs";
+import { getUserByEmail } from "@/src/queries/select";
+import { insertUser } from "@/src/queries/insert";
+import { db } from "@/src/db";
+import { users } from "@/src/schema";
+import { eq } from "drizzle-orm";
+import NextAuth from "next-auth";
+import Google from "next-auth/providers/google";
 
-interface CustomSession extends Session {
-  accessToken?: string;
+declare module "next-auth" {
+  interface Session extends DefaultSession {
+    accessToken?: string;
+    user: {
+      id: string;
+      email: string;
+      name?: string | null;
+      role: string;
+      image?: string | null;
+    } & DefaultSession["user"]
+  }
+
+  interface User {
+    role?: string;
+  }
 }
 
-export const authOptions = {
+declare module "next-auth/jwt" {
+  interface JWT {
+    id?: string;
+    role?: string;
+    accessToken?: string;
+  }
+}
+
+export const runtime = 'nodejs';
+
+export const authOptions: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || 'development-secret-do-not-use-in-production',
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
-    CredentialsProvider({
+    {
+      id: "credentials",
       name: "Credentials",
+      type: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
@@ -24,32 +55,126 @@ export const authOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
         
-        // Here you would typically validate against your database
-        // For now, we'll accept any email/password combination
+        const user = await getUserByEmail(credentials.email);
+        if (!user) return null;
+
+        const isValidPassword = await bcrypt.compare(credentials.password, user.hashedPassword);
+        if (!isValidPassword) return null;
+
         return {
-          id: "1",
-          email: credentials.email,
-          name: credentials.email.split('@')[0],
-        }
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        };
       }
-    })
+    }
   ],
   pages: {
     signIn: '/',
   },
   callbacks: {
-    async jwt({ token, account }: { token: JWT; account: any }) {
-      if (account) {
-        token.accessToken = account.access_token
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google" && user.email) {
+        try {
+          // Check if user exists
+          let dbUser = await getUserByEmail(user.email);
+          
+          // If user doesn't exist, create them
+          if (!dbUser) {
+            console.log('Creating new user for:', user.email);
+            const [newUser] = await insertUser({
+              email: user.email,
+              name: user.name || null,
+              role: 'user',
+              emailVerified: true,
+              hashedPassword: await bcrypt.hash(Math.random().toString(36), 10),
+              lastLogin: new Date(),
+              createdAt: new Date(),
+            });
+            dbUser = newUser;
+            console.log('Created new user:', dbUser);
+          }
+          
+          return true;
+        } catch (error) {
+          console.error('Error in signIn callback:', error);
+          return false;
+        }
       }
-      return token
+      return true;
     },
-    async session({ session, token }: { session: CustomSession; token: JWT }) {
-      session.accessToken = token.accessToken as string
-      return session
+    async jwt({ token, account, user }) {
+      console.log('JWT Callback - Input:', { token, account, user });
+      
+      if (account) {
+        token.accessToken = account.access_token;
+      }
+      
+      // If we have user data from sign in, use that
+      if (user?.email) {
+        console.log('Looking up user by email from sign in:', user.email);
+        const dbUser = await getUserByEmail(user.email);
+        console.log('Database user found from sign in:', dbUser);
+        
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+          
+          // Update last login time
+          try {
+            await db.update(users)
+              .set({ lastLogin: new Date() })
+              .where(eq(users.id, dbUser.id));
+          } catch (error) {
+            console.error('Error updating last login:', error);
+          }
+        }
+      }
+      // If we don't have user data but have email in token, look up user
+      else if (token.email && !token.id) {
+        console.log('Looking up user by email from token:', token.email);
+        const dbUser = await getUserByEmail(token.email);
+        console.log('Database user found from token:', dbUser);
+        
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+          
+          // Update last login time
+          try {
+            await db.update(users)
+              .set({ lastLogin: new Date() })
+              .where(eq(users.id, dbUser.id));
+          } catch (error) {
+            console.error('Error updating last login:', error);
+          }
+        }
+      }
+      
+      return token;
+    },
+    async session({ session, token }) {
+      console.log('Session Callback - Input:', { session, token });
+      
+      if (token.accessToken) {
+        session.accessToken = token.accessToken;
+      }
+      
+      if (token.id && token.role) {
+        session.user.id = token.id;
+        session.user.role = token.role;
+      }
+      
+      console.log('Session Callback - Output:', session);
+      return session;
     }
+  },
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   }
-}
+};
 
-const handler = NextAuth(authOptions)
-export { handler as GET, handler as POST }
+const handler = NextAuth(authOptions);
+export { handler as GET, handler as POST };

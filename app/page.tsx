@@ -7,17 +7,41 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { QrCode, Wand2, Zap, Shield, Eye, Palette } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import LoginButton from '@/components/LoginButton';
 import AuthCheck from '@/components/AuthCheck';
+import { UserGallery } from '@/components/UserGallery';
 import Image from "next/image";
-import { Prediction } from "replicate";
+import { Prediction as ReplicatePrediction } from "replicate";
+
+interface CustomPrediction {
+    id: string;
+    status: string;
+    output: string[] | null;
+    error: string | null;
+    urls?: {
+        temporary: string;
+        permanent: string;
+    };
+}
+
+type Prediction = CustomPrediction;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+const getImageUrl = (prediction: CustomPrediction | null): string | null => {
+    if (!prediction) return null;
+    if (prediction.urls?.permanent) return prediction.urls.permanent;
+    if (prediction.output && prediction.output.length > 0) {
+        return prediction.output[prediction.output.length - 1];
+    }
+    return null;
+};
+
 export default function Home() {
-    const [prediction, setPrediction] = useState<Prediction | null>(null);
+    const { data: session } = useSession();
+    const [prediction, setPrediction] = useState<CustomPrediction | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [predictionId, setPredictionId] = useState<string | null>(null);
@@ -25,6 +49,16 @@ export default function Home() {
         "idle" | "processing" | "succeeded" | "failed"
     >("idle");
     const [fileName, setFileName] = useState<string | null>(null);
+    const [showGallery, setShowGallery] = useState(false);
+    const [galleryRefreshTrigger, setGalleryRefreshTrigger] = useState(0);
+
+    const toggleGallery = useCallback(() => {
+        setShowGallery(prev => !prev);
+    }, []);
+
+    const refreshGallery = useCallback(() => {
+        setGalleryRefreshTrigger(prev => prev + 1);
+    }, []);
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -36,7 +70,7 @@ export default function Home() {
     };
 
     const startPolling = async (id: string) => {
-        let currentPrediction: Prediction | null = null;
+        let currentPrediction: CustomPrediction | null = null;
         while (
             currentPrediction === null ||
             (currentPrediction.status !== "succeeded" &&
@@ -72,7 +106,7 @@ export default function Home() {
                 }
 
                 try {
-                    const updatedPrediction: Prediction = JSON.parse(text);
+                    const updatedPrediction: CustomPrediction = JSON.parse(text);
                     currentPrediction = updatedPrediction;
                     console.log({ updatedPrediction });
                     setPrediction(updatedPrediction);
@@ -215,15 +249,17 @@ export default function Home() {
                     </Link>
                     <div className="flex gap-4">
                         <LoginButton />
-                        <Button
-                            className="bg-amber-500 hover:bg-amber-600 text-slate-900"
-                            onClick={() => {
-                                const target = document.querySelector(".p-8");
-                                target?.scrollIntoView({ behavior: "smooth" });
-                            }}
-                        >
-                            Get Started
-                        </Button>
+                        {session?.user && (
+                            <Button
+                                className="bg-amber-500 hover:bg-amber-600 text-slate-900"
+                                onClick={() => {
+                                    const target = document.getElementById("qr-code-form");
+                                    target?.scrollIntoView({ behavior: "smooth" });
+                                }}
+                            >
+                                Get Started
+                            </Button>
+                        )}
                     </div>
                 </div>
             </header>
@@ -248,51 +284,74 @@ export default function Home() {
                     works of art.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                    <Button
-                        size="lg"
-                        className="bg-amber-500 hover:bg-amber-600 text-slate-900 group"
-                        onClick={() => {
-                            const target = document.querySelector(".p-8");
-                            target?.scrollIntoView({ behavior: "smooth" });
-                        }}
-                    >
-                        Start Creating
-                        <Wand2 className="ml-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
-                    </Button>
-                    <Button
-                        size="lg"
-                        variant="outline"
-                        className="text-slate-900 hover:text-amber-500 bg-white hover:bg-white/90"
-                    >
-                        View Gallery
-                    </Button>
+                    {session?.user ? (
+                        <>
+                            <Button
+                                size="lg"
+                                className="bg-amber-500 hover:bg-amber-600 text-slate-900 group"
+                                onClick={() => {
+                                    const target = document.getElementById("qr-code-form");
+                                    target?.scrollIntoView({ behavior: "smooth" });
+                                }}
+                            >
+                                Start Creating
+                                <Wand2 className="ml-2 h-4 w-4 group-hover:rotate-12 transition-transform" />
+                            </Button>
+                            <Button
+                                size="lg"
+                                variant="outline"
+                                className="text-slate-900 hover:text-amber-500 bg-white hover:bg-white/90"
+                                onClick={toggleGallery}
+                            >
+                                {showGallery ? 'Hide Gallery' : 'View Gallery'}
+                            </Button>
+                        </>
+                    ) : (
+                        <div className="text-slate-400 text-lg">
+                            Log in to start creating your own AI-styled QR codes
+                        </div>
+                    )}
                 </div>
 
-                {/* Example QR Codes */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-                    {exampleQRCodes.map((qr, index) => (
-                        <Card
-                            key={index}
-                            className="bg-slate-900/50 border-slate-800 group hover:border-amber-500/50 transition-colors"
-                        >
-                            <CardContent className="p-6">
-                                <div className="relative overflow-hidden rounded-lg" style={{width: '100%', height:'300px'}}>
-                                    <Image
-                                        src={qr.image}
-                                        alt={`QR Code Example - ${qr.title}`}
-                                        layout="fill"
-                                        objectFit="contain"
-                                        className="transition-transform duration-300 group-hover:scale-105 rounded-md"
-                                        style={{ position: 'absolute'}}
-                                    />
-                                </div>
-                                <p className="text-slate-400 mt-4 group-hover:text-amber-500 transition-colors">
-                                    {qr.title}
-                                </p>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+                {/* User Gallery */}
+                {showGallery && session?.user && (
+                    <div className="mb-20">
+                        <UserGallery refreshTrigger={galleryRefreshTrigger} />
+                    </div>
+                )}
+
+                {/* Example QR Codes - Only shown when not logged in */}
+                {!session?.user && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+                        {exampleQRCodes.map((qr, index) => (
+                            <Card
+                                key={index}
+                                className="bg-slate-900/50 border-slate-800 group hover:border-amber-500/50 transition-colors"
+                            >
+                                <CardContent className="p-6">
+                                    <div className="relative overflow-hidden rounded-lg" style={{width: '100%', height:'300px'}}>
+                                        <div className="h-full w-full relative">
+                                            <Image
+                                                src={qr.image}
+                                                alt={`${qr.title} example QR code design`}
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw"
+                                                className="transition-transform duration-300 group-hover:scale-105 rounded-md object-contain"
+                                                onError={(e) => {
+                                                    const target = e.target as HTMLImageElement;
+                                                    target.src = '/placeholder-error.png';
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="text-slate-400 mt-4 group-hover:text-amber-500 transition-colors">
+                                        {qr.title}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                )}
 
                 {/* Features Section */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
@@ -313,26 +372,40 @@ export default function Home() {
                 <AuthCheck>
                     <div className="max-w-3xl mx-auto">
                         <Card className="bg-slate-900/50 border-slate-800">
-                            <CardContent className="p-8 flex flex-col items-center">
+                            <CardContent id="qr-code-form" className="p-8 flex flex-col items-center">
                                 {error && <div className="text-red-500 mb-4">{error}</div>}
                                 {status === "processing" && loading && (
                                     <div className="text-slate-400 mb-4">
                                         Generating QR code... please wait
                                     </div>
                                 )}
-                                {prediction?.output && (
-                                    <div className="relative mb-4" style={{width: '100%', height:'768px'}}>
-                                        <Image
-                                            src={prediction.output[prediction.output.length - 1]}
-                                            alt="Generated QR code"
-                                            layout="fill"
-                                            objectFit="contain"
-                                            style={{
-                                                position: "absolute"
-                                            }}
-                                        />
-                                    </div>
-                                )}
+                                {(() => {
+                                    const imageUrl = getImageUrl(prediction);
+                                    if (!imageUrl) return null;
+                                    
+                                    return (
+                                        <div className="relative mb-4" style={{width: '100%', height:'768px'}}>
+                                            <Image
+                                                src={imageUrl}
+                                                alt="AI-generated styled QR code"
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 768px"
+                                                className="object-contain"
+                                                priority={true}
+                                                onError={(e) => {
+                                                    const img = e.target as HTMLImageElement;
+                                                    img.src = '/placeholder-error.png';
+                                                }}
+                                                onLoad={() => {
+                                                    // Only refresh gallery when we have the permanent URL
+                                                    if (prediction?.status === 'succeeded' && prediction?.urls?.permanent) {
+                                                        refreshGallery();
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    );
+                                })()}
                                 <form onSubmit={handleSubmit}>
                                     <h2 className="text-2xl font-bold text-slate-50 mb-2">
                                         Start Creating Your Styled QR Code

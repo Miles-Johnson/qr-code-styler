@@ -10,6 +10,7 @@ export function ImageUploadForm() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const { toast } = useToast();
+  const [refreshGallery, setRefreshGallery] = useState(0);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -77,6 +78,8 @@ export function ImageUploadForm() {
             description: 'Image generated successfully',
           });
           setIsGenerating(false);
+          // Trigger gallery refresh
+          setRefreshGallery(prev => prev + 1);
         } else if (updatedPrediction.status === 'failed') {
           clearInterval(interval);
           setIsGenerating(false);

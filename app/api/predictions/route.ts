@@ -14,6 +14,11 @@ const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN,
 });
 
+// Prevent Next.js/Vercel caching - https://github.com/replicate/replicate-javascript/issues/136
+replicate.fetch = (url, options) => {
+  return fetch(url, { ...options, cache: "no-store" });
+};
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   const userEmail = session?.user?.email;
@@ -75,10 +80,22 @@ export async function POST(req: NextRequest) {
     // Create prediction
     let prediction;
     try {
-      prediction = await replicate.predictions.create({
-        version: "d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb",
-        input,
-      });
+      const options: any = {
+      version: "d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb",
+      input,
+    };
+
+    // Add webhook configuration if available
+    const WEBHOOK_HOST = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}`
+      : process.env.NGROK_HOST;
+      
+    if (WEBHOOK_HOST) {
+      options.webhook = `${WEBHOOK_HOST}/api/webhooks`;
+      options.webhook_events_filter = ["start", "completed"];
+    }
+
+    prediction = await replicate.predictions.create(options);
       console.log("Replicate prediction created:", prediction);
     } catch (replicateError:any) {
       console.error("Error during Replicate API call:", replicateError);
