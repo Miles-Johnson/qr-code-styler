@@ -47,6 +47,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [envInfo, setEnvInfo] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(true); // Set to true by default to help debug
+  const [rawApiResponse, setRawApiResponse] = useState<any>(null); // Store raw API response for debugging
 
   const checkDebugInfo = useCallback(async () => {
     try {
@@ -62,6 +63,11 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
       const data = await response.json();
       setDebugInfo(data);
       setShowDebug(true);
+
+      console.log('Debug Info:', {
+        env: envData,
+        gallery: data
+      });
     } catch (error) {
       console.error('Debug check failed:', error);
       toast({
@@ -105,18 +111,37 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data: ApiResponse = await response.json();
+      const responseText = await response.text();
+      console.log('UserGallery - Raw response text:', responseText);
+
+      let data: ApiResponse;
+      try {
+        data = JSON.parse(responseText);
+        setRawApiResponse(data); // Store raw response for debugging
+        console.log('UserGallery - Parsed response data:', data);
+      } catch (parseError) {
+        console.error('UserGallery - JSON parse error:', parseError);
+        throw new Error(`Failed to parse response: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`);
+      }
+      
       console.log('UserGallery - Response data:', {
         imageCount: data.images?.length,
         pagination: data.pagination,
         firstImageUrl: data.images?.[0]?.imageUrl,
-        hasImages: data.images?.length > 0
+        hasImages: data.images?.length > 0,
+        imageUrls: data.images?.map(img => img.imageUrl)
       });
       
       if (pagination.offset === 0) {
+        console.log('UserGallery - Setting initial images:', data.images);
         setImages(data.images || []); // Ensure we handle empty arrays
       } else {
-        setImages(prev => [...prev, ...(data.images || [])]); // Append for pagination
+        console.log('UserGallery - Appending images:', data.images);
+        setImages(prev => {
+          const newImages = [...prev, ...(data.images || [])];
+          console.log('UserGallery - Updated images array:', newImages);
+          return newImages;
+        }); // Append for pagination
       }
       setPagination(data.pagination);
 
@@ -190,7 +215,8 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
       pagination,
       status,
       hasSession: !!session?.user?.id,
-      firstImageUrl: images[0]?.imageUrl // Log first image URL for debugging
+      firstImageUrl: images[0]?.imageUrl,
+      allImageUrls: images.map(img => img.imageUrl)
     });
   }, [images.length, loading, error, pagination, status, session, images]);
 
@@ -339,6 +365,18 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
 
         {showDebug && (
           <div className="space-y-4">
+            {/* Raw API Response */}
+            {rawApiResponse && (
+              <div className="p-4 bg-slate-900/50 rounded-lg text-xs font-mono overflow-x-auto border border-slate-800">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-semibold text-slate-200">Raw API Response</h3>
+                </div>
+                <pre className="whitespace-pre-wrap break-all text-slate-300">
+                  {JSON.stringify(rawApiResponse, null, 2)}
+                </pre>
+              </div>
+            )}
+
             {/* Environment Information */}
             {envInfo && (
               <div className="p-4 bg-slate-900/50 rounded-lg text-xs font-mono overflow-x-auto border border-slate-800">
