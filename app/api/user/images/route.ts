@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
       });
 
       // Verify image URLs are accessible
-      for (const image of images) {
+      const verifiedImages = await Promise.all(images.map(async (image) => {
         try {
           const response = await fetch(image.imageUrl, { method: 'HEAD' });
           console.log('Image URL check:', {
@@ -95,16 +95,46 @@ export async function GET(request: NextRequest) {
             contentType: response.headers.get('content-type'),
             contentLength: response.headers.get('content-length')
           });
+
+          if (!response.ok) {
+            console.warn('Image URL not accessible:', {
+              url: image.imageUrl,
+              status: response.status
+            });
+            return null;
+          }
+
+          return {
+            id: image.id,
+            imageUrl: image.imageUrl,
+            prompt: image.prompt,
+            originalQrUrl: image.originalQrUrl,
+            createdAt: image.createdAt,
+            width: image.width,
+            height: image.height,
+            predictionId: image.predictionId
+          };
         } catch (error) {
           console.error('Failed to verify image URL:', {
             url: image.imageUrl,
             error: error instanceof Error ? error.message : 'Unknown error'
           });
+          return null;
         }
-      }
+      }));
+
+      // Filter out any null values from failed verifications
+      const validImages = verifiedImages.filter((img): img is NonNullable<typeof img> => img !== null);
+      
+      console.log('Images Route - Valid images:', {
+        totalImages: images.length,
+        validImages: validImages.length,
+        invalidImages: images.length - validImages.length
+      });
       
       // Return empty array if no images found
-      if (!images || images.length === 0) {
+      if (!validImages || validImages.length === 0) {
+        console.log('Images Route - No valid images found');
         return new NextResponse(
           JSON.stringify({
             images: [],
@@ -123,19 +153,28 @@ export async function GET(request: NextRequest) {
       }
       
       // Manual pagination since we're using Drizzle
-      const paginatedImages = images.slice(offset, offset + limit);
-      const total = images.length;
+      const paginatedImages = validImages.slice(offset, offset + limit);
+      const total = validImages.length;
+
+      const response = {
+        images: paginatedImages,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + limit < total
+        }
+      };
+
+      console.log('Images Route - Final response:', {
+        imageCount: paginatedImages.length,
+        total,
+        hasMore: offset + limit < total,
+        firstImageUrl: paginatedImages[0]?.imageUrl
+      });
 
       return new NextResponse(
-        JSON.stringify({
-          images: paginatedImages,
-          pagination: {
-            total,
-            limit,
-            offset,
-            hasMore: offset + limit < total
-          }
-        }),
+        JSON.stringify(response),
         { 
           status: 200,
           headers: { 'Content-Type': 'application/json' }
