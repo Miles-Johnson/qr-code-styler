@@ -23,6 +23,11 @@ interface PaginationInfo {
   hasMore: boolean;
 }
 
+interface ApiResponse {
+  images: GeneratedImage[];
+  pagination: PaginationInfo;
+}
+
 interface UserGalleryProps {
   refreshTrigger?: number;
 }
@@ -100,7 +105,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      const data = await response.json();
+      const data: ApiResponse = await response.json();
       console.log('UserGallery - Response data:', {
         imageCount: data.images?.length,
         pagination: data.pagination,
@@ -184,9 +189,10 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
       error,
       pagination,
       status,
-      hasSession: !!session?.user?.id
+      hasSession: !!session?.user?.id,
+      firstImageUrl: images[0]?.imageUrl // Log first image URL for debugging
     });
-  }, [images.length, loading, error, pagination, status, session]);
+  }, [images.length, loading, error, pagination, status, session, images]);
 
   // Loading state
   if (status === 'loading') {
