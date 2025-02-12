@@ -97,6 +97,7 @@ export async function GET(request: NextRequest) {
         offset
       });
 
+      // Get all images for the user
       const images = await getGeneratedImagesByUserId(session.user.id);
       
       console.log('Images Route - Query Results:', {
@@ -111,13 +112,29 @@ export async function GET(request: NextRequest) {
         }))
       });
 
+      // Sort images by createdAt in descending order (newest first)
+      const sortedImages = [...images].sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      });
       
       // Manual pagination since we're using Drizzle
-      const paginatedImages = images.slice(offset, offset + limit);
-      const total = images.length;
+      const paginatedImages = sortedImages.slice(offset, offset + limit);
+      const total = sortedImages.length;
+
+      // Map the images to include only necessary fields
+      const mappedImages = paginatedImages.map(img => ({
+        id: img.id,
+        imageUrl: img.imageUrl,
+        prompt: img.prompt,
+        createdAt: img.createdAt,
+        width: img.width,
+        height: img.height
+      }));
 
       const response = {
-        images: paginatedImages,
+        images: mappedImages,
         pagination: {
           total,
           limit,
