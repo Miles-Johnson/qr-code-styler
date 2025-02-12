@@ -26,16 +26,29 @@
    - Server-side data fetching where possible
    - Client-side fetching with proper error handling
    - Pagination support for large datasets
+   - Separate mount and refresh effects
+   - Optimized state updates
 
 2. Error Handling
    - Fallback UI for error states
    - User-friendly error messages
    - Retry mechanisms for failed operations
+   - Comprehensive error logging
+   - State recovery after errors
 
 3. Debug Features
    - Debug UI components hidden by default
    - System status checks
    - Resource accessibility verification
+   - Component lifecycle logging
+   - State change tracking
+
+4. Gallery Implementation
+   - Initial mount data loading
+   - Refresh trigger handling
+   - Ordered data presentation
+   - Image loading optimization
+   - Error boundary protection
 
 ### State Management
 1. Component State
@@ -55,11 +68,15 @@
    - Paginated queries for large datasets
    - Efficient joins and relationships
    - User-scoped queries for security
+   - Ordered result sets
+   - Optimized filtering
 
 2. Connection Management
    - Connection pooling
    - Error handling and retries
    - Health checks
+   - Connection state logging
+   - Automatic recovery
 
 ## Image Handling
 
