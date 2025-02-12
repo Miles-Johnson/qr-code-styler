@@ -2,15 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getGeneratedImagesByUserId } from "@/src/queries/select";
-import { db } from "@/src/db";
-import { users, generatedImages } from "@/src/schema";
-import { eq, sql } from "drizzle-orm";
 
 export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get and validate session
+    // Get session
     const session = await getServerSession(authOptions);
     console.log('Images Route - Session:', {
       id: session?.user?.id,
@@ -20,177 +17,25 @@ export async function GET(request: NextRequest) {
     
     if (!session?.user?.id) {
       console.log('Images Route - No user ID in session');
-      return new NextResponse(
-        JSON.stringify({
-          images: [],
-          pagination: {
-            total: 0,
-            limit: 10,
-            offset: 0,
-            hasMore: false
-          }
-        }),
-        { 
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      return NextResponse.json({ images: [] });
     }
 
-    // Validate and parse query parameters
-    const searchParams = new URL(request.url).searchParams;
-    const limit = Math.max(1, Math.min(50, parseInt(searchParams.get('limit') || '10')));
-    const offset = Math.max(0, parseInt(searchParams.get('offset') || '0'));
-
-    // Check database connection
-    try {
-      const dbCheck = await db.select().from(users).limit(1);
-      console.log('Database connection check successful');
-    } catch (dbError) {
-      console.error('Database connection error:', dbError);
-      return new NextResponse(
-        JSON.stringify({
-          images: [],
-          pagination: {
-            total: 0,
-            limit,
-            offset,
-            hasMore: false
-          }
-        }),
-        { 
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
-
-    // Get user's images with pagination
-    try {
-      // Enhanced session and request logging
-      console.log('Debug - User Session Details:', {
-        userId: session.user.id,
-        userEmail: session.user.email,
-        sessionData: session,
-        timestamp: new Date().toISOString(),
-        requestUrl: request.url,
-        headers: Object.fromEntries(request.headers)
-      });
-
-      // Verify user exists
-      const userCheck = await db.select().from(users).where(eq(users.id, session.user.id));
-      console.log('Debug - User Check:', {
-        userFound: userCheck.length > 0,
-        userData: userCheck[0]
-      });
-
-      // Get image count
-      const imageCount = await db
-        .select({ count: sql`count(*)::integer` })
-        .from(generatedImages)
-        .where(eq(generatedImages.userId, session.user.id));
-      console.log('Debug - Image Count:', imageCount[0]);
-
-      console.log('Images Route - Attempting to fetch images for user:', {
-        userId: session.user.id,
-        limit,
-        offset
-      });
-
-      // Get all images for the user
-      const images = await getGeneratedImagesByUserId(session.user.id);
-      
-      console.log('Images Route - Query Results:', {
-        userId: session.user.id,
-        imageCount: images.length,
-        imageUrls: images.map(img => ({
-          id: img.id,
-          url: img.imageUrl,
-          createdAt: img.createdAt,
-          predictionId: img.predictionId,
-          userId: img.userId // Log the userId of each image to verify ownership
-        }))
-      });
-
-      // Sort images by createdAt in descending order (newest first)
-      const sortedImages = [...images].sort((a, b) => {
-        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        return dateB - dateA;
-      });
-      
-      // Manual pagination since we're using Drizzle
-      const paginatedImages = sortedImages.slice(offset, offset + limit);
-      const total = sortedImages.length;
-
-      // Map the images to include only necessary fields
-      const mappedImages = paginatedImages.map(img => ({
+    // Get images directly
+    const images = await getGeneratedImagesByUserId(session.user.id);
+    console.log('Images Route - Query Results:', {
+      userId: session.user.id,
+      imageCount: images.length,
+      images: images.map(img => ({
         id: img.id,
-        imageUrl: img.imageUrl,
-        prompt: img.prompt,
-        createdAt: img.createdAt,
-        width: img.width,
-        height: img.height
-      }));
+        url: img.imageUrl,
+        createdAt: img.createdAt
+      }))
+    });
 
-      const response = {
-        images: mappedImages,
-        pagination: {
-          total,
-          limit,
-          offset,
-          hasMore: offset + limit < total
-        }
-      };
-
-      console.log('Images Route - Final response:', {
-        imageCount: paginatedImages.length,
-        total,
-        hasMore: offset + limit < total,
-        firstImageUrl: paginatedImages[0]?.imageUrl
-      });
-
-      return new NextResponse(
-        JSON.stringify(response),
-        { 
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    } catch (queryError) {
-      console.error('Error querying images:', queryError);
-      return new NextResponse(
-        JSON.stringify({
-          images: [],
-          pagination: {
-            total: 0,
-            limit,
-            offset,
-            hasMore: false
-          }
-        }),
-        { 
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
-    }
-  } catch (error: any) {
+    // Return images directly
+    return NextResponse.json({ images });
+  } catch (error) {
     console.error('Error in images route:', error);
-    return new NextResponse(
-      JSON.stringify({
-        images: [],
-        pagination: {
-          total: 0,
-          limit: 10,
-          offset: 0,
-          hasMore: false
-        }
-      }),
-      { 
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
+    throw error; // Let Next.js handle the error
   }
 }
