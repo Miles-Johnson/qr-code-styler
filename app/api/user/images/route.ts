@@ -84,25 +84,6 @@ export async function GET(request: NextRequest) {
         }))
       });
 
-      // Return empty array if no images found
-      if (!images || images.length === 0) {
-        console.log('Images Route - No images found');
-        return new NextResponse(
-          JSON.stringify({
-            images: [],
-            pagination: {
-              total: 0,
-              limit,
-              offset,
-              hasMore: false
-            }
-          }),
-          { 
-            status: 200,
-            headers: { 'Content-Type': 'application/json' }
-          }
-        );
-      }
       
       // Manual pagination since we're using Drizzle
       const paginatedImages = images.slice(offset, offset + limit);
