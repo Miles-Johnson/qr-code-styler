@@ -53,7 +53,19 @@ export default function Home() {
     const [galleryRefreshTrigger, setGalleryRefreshTrigger] = useState(0);
 
     const toggleGallery = useCallback(() => {
-        setShowGallery(prev => !prev);
+        setShowGallery(prev => {
+            const newState = !prev;
+            if (newState) {
+                // Wait for state update and DOM render
+                setTimeout(() => {
+                    const gallerySection = document.getElementById('gallery-section');
+                    if (gallerySection) {
+                        gallerySection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }, 100);
+            }
+            return newState;
+        });
     }, []);
 
     const refreshGallery = useCallback(() => {
@@ -300,7 +312,7 @@ export default function Home() {
                             <Button
                                 size="lg"
                                 variant="outline"
-                                className="text-slate-900 hover:text-amber-500 bg-white hover:bg-white/90"
+                                className="text-slate-200 hover:text-amber-500 bg-slate-800 hover:bg-slate-800/90 border-slate-700"
                                 onClick={toggleGallery}
                             >
                                 {showGallery ? 'Hide Gallery' : 'View Gallery'}
@@ -315,7 +327,7 @@ export default function Home() {
 
                 {/* User Gallery */}
                 {showGallery && session?.user && (
-                    <div className="mb-20">
+                    <div id="gallery-section" className="mb-20 mt-12 pt-8 border-t border-slate-800">
                         <UserGallery refreshTrigger={galleryRefreshTrigger} />
                     </div>
                 )}

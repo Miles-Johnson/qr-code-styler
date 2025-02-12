@@ -41,9 +41,9 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [envInfo, setEnvInfo] = useState<any>(null);
-  const [showDebug, setShowDebug] = useState(false);
+  const [showDebug, setShowDebug] = useState(true); // Set to true by default to help debug
 
-  const checkDebugInfo = async () => {
+  const checkDebugInfo = useCallback(async () => {
     try {
       const [galleryResponse, envResponse] = await Promise.all([
         fetch('/api/debug/gallery'),
@@ -65,9 +65,9 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
         variant: 'destructive',
       });
     }
-  };
+  }, [toast]);
 
-  const fetchImages = async () => {
+  const fetchImages = useCallback(async () => {
     if (!session?.user?.id) {
       console.log('UserGallery - No session user ID available');
       return; // Don't fetch if no session
@@ -114,6 +114,9 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
         setImages(prev => [...prev, ...(data.images || [])]); // Append for pagination
       }
       setPagination(data.pagination);
+
+      // Auto-check debug info when images are loaded
+      checkDebugInfo();
     } catch (error) {
       console.error('Gallery fetch error:', error);
       setError(error instanceof Error ? error.message : 'Failed to load images');
@@ -125,7 +128,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.user?.id, pagination.limit, pagination.offset, status, toast, checkDebugInfo]);
 
   // Initial fetch on mount and when authentication status changes
   useEffect(() => {
@@ -140,7 +143,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
       setPagination(prev => ({ ...prev, offset: 0 }));
       fetchImages();
     }
-  }, [status]); // Only depend on auth status for initial load
+  }, [status, fetchImages, session?.user?.id, refreshTrigger]);
 
   // Handle refresh trigger separately
   useEffect(() => {
@@ -155,7 +158,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
       setPagination(prev => ({ ...prev, offset: 0 }));
       fetchImages();
     }
-  }, [refreshTrigger]); // Only depend on refresh trigger for updates
+  }, [refreshTrigger, status, fetchImages, session?.user?.id]);
 
   const loadMore = useCallback(() => {
     if (loading) return; // Prevent multiple simultaneous requests
@@ -171,7 +174,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
       offset: prev.offset + prev.limit,
     }));
     fetchImages();
-  }, [loading, pagination.offset, pagination.limit, pagination.hasMore]);
+  }, [loading, pagination.offset, pagination.limit, pagination.hasMore, fetchImages]);
 
   // Component state debug logging
   useEffect(() => {
@@ -191,8 +194,8 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
     return (
       <div className="text-center py-8">
         <div className="animate-pulse space-y-4">
-          <div className="h-48 bg-gray-200 rounded-lg"></div>
-          <div className="h-48 bg-gray-200 rounded-lg"></div>
+          <div className="h-48 bg-slate-800 rounded-lg"></div>
+          <div className="h-48 bg-slate-800 rounded-lg"></div>
         </div>
       </div>
     );
@@ -203,26 +206,31 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
     console.log('UserGallery - Rendering unauthenticated state');
     return (
       <div className="text-center py-8 space-y-4">
-        <p className="text-lg font-semibold">Please sign in to view your generated images.</p>
-        <p className="text-sm text-gray-600">Your gallery will be available after signing in.</p>
+        <p className="text-lg font-semibold text-slate-200">Please sign in to view your generated images.</p>
+        <p className="text-sm text-slate-400">Your gallery will be available after signing in.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <h2 className="text-2xl font-bold">Your Generated Images</h2>
+    <div className="space-y-8 w-full max-w-7xl mx-auto px-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-slate-200">Your Generated Images</h2>
+        <p className="text-sm text-slate-400">
+          {images.length} image{images.length !== 1 ? 's' : ''} found
+        </p>
+      </div>
       
       {loading && images.length === 0 ? (
         <div className="text-center py-8">
           <div className="animate-pulse space-y-4">
-            <div className="h-48 bg-gray-200 rounded-lg"></div>
-            <div className="h-48 bg-gray-200 rounded-lg"></div>
+            <div className="h-48 bg-slate-800 rounded-lg"></div>
+            <div className="h-48 bg-slate-800 rounded-lg"></div>
           </div>
         </div>
       ) : error ? (
         <div className="text-center py-8 space-y-4">
-          <p className="text-lg text-red-600">Error loading images</p>
+          <p className="text-lg text-red-400">Error loading images</p>
           <Button 
             onClick={() => {
               setError(null);
@@ -235,19 +243,19 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
         </div>
       ) : images.length === 0 ? (
         <div className="text-center py-8 space-y-4">
-          <p className="text-lg">No images generated yet.</p>
-          <p className="text-sm text-gray-600">Create your first QR code to get started!</p>
+          <p className="text-lg text-slate-200">No images generated yet.</p>
+          <p className="text-sm text-slate-400">Create your first QR code to get started!</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {images.map((image) => (
             <div
               key={image.id}
-              className="relative bg-white rounded-lg shadow-md overflow-hidden"
+              className="relative bg-slate-900/50 rounded-lg shadow-md overflow-hidden border border-slate-800 hover:border-amber-500/50 transition-colors"
             >
-              <div className="relative aspect-square bg-gray-100">
+              <div className="relative aspect-square bg-slate-800">
                 {/* Fallback for image load errors */}
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                <div className="absolute inset-0 flex items-center justify-center text-slate-600">
                   <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
@@ -256,7 +264,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
                   src={image.imageUrl}
                   alt={image.prompt}
                   fill
-                  className="object-cover"
+                  className="object-contain"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   priority={pagination.offset === 0} // Prioritize loading first page images
                   loading={pagination.offset === 0 ? "eager" : "lazy"}
@@ -286,11 +294,11 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
                 />
               </div>
               <div className="p-4 space-y-2">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-slate-400">
                   {new Date(image.createdAt).toLocaleDateString()}
                 </p>
-                <p className="text-sm line-clamp-2">{image.prompt}</p>
-                <p className="text-xs text-gray-400 mt-1">ID: {image.id}</p>
+                <p className="text-sm text-slate-200 line-clamp-2">{image.prompt}</p>
+                <p className="text-xs text-slate-500 mt-1">ID: {image.id}</p>
               </div>
             </div>
           ))}
@@ -303,6 +311,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
             onClick={loadMore}
             disabled={loading}
             variant="outline"
+            className="text-slate-200 border-slate-700 hover:bg-slate-800"
           >
             {loading ? 'Loading...' : 'Load More'}
           </Button>
@@ -316,7 +325,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
             onClick={checkDebugInfo}
             variant="outline"
             size="sm"
-            className="text-xs"
+            className="text-xs text-slate-200 border-slate-700 hover:bg-slate-800"
           >
             Check Gallery Status
           </Button>
@@ -326,19 +335,19 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
           <div className="space-y-4">
             {/* Environment Information */}
             {envInfo && (
-              <div className="p-4 bg-gray-50 rounded-lg text-xs font-mono overflow-x-auto">
+              <div className="p-4 bg-slate-900/50 rounded-lg text-xs font-mono overflow-x-auto border border-slate-800">
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold">Environment Status</h3>
+                  <h3 className="font-semibold text-slate-200">Environment Status</h3>
                   <Button
                     onClick={() => setShowDebug(false)}
                     variant="ghost"
                     size="sm"
-                    className="h-6 text-xs"
+                    className="h-6 text-xs text-slate-400 hover:text-slate-200"
                   >
                     Hide
                   </Button>
                 </div>
-                <pre className="whitespace-pre-wrap break-all">
+                <pre className="whitespace-pre-wrap break-all text-slate-300">
                   {JSON.stringify(envInfo, null, 2)}
                 </pre>
               </div>
@@ -346,11 +355,11 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
 
             {/* Gallery Debug Information */}
             {debugInfo && (
-              <div className="p-4 bg-gray-50 rounded-lg text-xs font-mono overflow-x-auto">
+              <div className="p-4 bg-slate-900/50 rounded-lg text-xs font-mono overflow-x-auto border border-slate-800">
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="font-semibold">Gallery Debug Information</h3>
+                  <h3 className="font-semibold text-slate-200">Gallery Debug Information</h3>
                 </div>
-                <pre className="whitespace-pre-wrap break-all">
+                <pre className="whitespace-pre-wrap break-all text-slate-300">
                   {JSON.stringify(debugInfo, null, 2)}
                 </pre>
               </div>
