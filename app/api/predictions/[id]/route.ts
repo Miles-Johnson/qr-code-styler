@@ -136,15 +136,40 @@ export async function GET(
         token: process.env.BLOB_READ_WRITE_TOKEN
       });
 
-      // Store in database
-      const storedData = await insertGeneratedImage({
-        userId: session.user.id,
-        predictionId: params.id,
-        prompt: prediction.input?.prompt || '',
-        imageUrl: blob.url,
-        width: 512,
-        height: 512
-      });
+      // Verify session user ID
+      if (!session.user?.id) {
+        console.error('Session user ID missing:', session);
+        return NextResponse.json({
+          detail: "User ID not found in session",
+          session: JSON.stringify(session)
+        }, { status: 400 });
+      }
+
+      // Store in database with detailed error logging
+      let storedData;
+      try {
+        storedData = await insertGeneratedImage({
+          userId: session.user.id,
+          predictionId: params.id,
+          prompt: prediction.input?.prompt || '',
+          imageUrl: blob.url,
+          width: 512,
+          height: 512
+        });
+      } catch (dbError: any) {
+        console.error('Database insertion error:', {
+          error: dbError.message,
+          stack: dbError.stack,
+          userId: session.user.id,
+          predictionId: params.id,
+          imageUrl: blob.url
+        });
+        return NextResponse.json({
+          ...prediction,
+          storageError: 'Database insertion failed',
+          errorDetail: dbError.message
+        }, { status: 500 });
+      }
 
       // Return both URLs - the temporary replicate URL and the permanent blob URL
       return NextResponse.json({
@@ -155,13 +180,19 @@ export async function GET(
           permanent: blob.url // blob storage URL
         }
       });
-    } catch (error) {
-      console.error('Error storing generated image:', error);
-      // Return prediction even if storage fails
+    } catch (error: any) {
+      console.error('Error storing generated image:', {
+        error: error.message,
+        stack: error.stack,
+        type: error.constructor.name
+      });
+      // Return prediction with detailed error information
       return NextResponse.json({
         ...prediction,
-        storageError: 'Failed to store generated image'
-      });
+        storageError: 'Failed to store generated image',
+        errorDetail: error.message,
+        errorType: error.constructor.name
+      }, { status: 500 });
     }
   }
 
