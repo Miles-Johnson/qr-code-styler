@@ -40,11 +40,20 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [envInfo, setEnvInfo] = useState<any>(null);
   const [showDebug, setShowDebug] = useState(false);
 
   const checkDebugInfo = async () => {
     try {
-      const response = await fetch('/api/debug/gallery');
+      const [galleryResponse, envResponse] = await Promise.all([
+        fetch('/api/debug/gallery'),
+        fetch('/api/debug/env')
+      ]);
+
+      const envData = await envResponse.json();
+      setEnvInfo(envData);
+      
+      const response = galleryResponse;
       const data = await response.json();
       setDebugInfo(data);
       setShowDebug(true);
@@ -301,32 +310,51 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
       )}
 
       {/* Debug Information */}
-      <div className="mt-8">
-        <Button
-          onClick={checkDebugInfo}
-          variant="outline"
-          size="sm"
-          className="text-xs"
-        >
-          Check Gallery Status
-        </Button>
+      <div className="mt-8 space-y-4">
+        <div className="flex gap-2">
+          <Button
+            onClick={checkDebugInfo}
+            variant="outline"
+            size="sm"
+            className="text-xs"
+          >
+            Check Gallery Status
+          </Button>
+        </div>
 
-        {showDebug && debugInfo && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg text-xs font-mono overflow-x-auto">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-semibold">Gallery Debug Information</h3>
-              <Button
-                onClick={() => setShowDebug(false)}
-                variant="ghost"
-                size="sm"
-                className="h-6 text-xs"
-              >
-                Hide
-              </Button>
-            </div>
-            <pre className="whitespace-pre-wrap break-all">
-              {JSON.stringify(debugInfo, null, 2)}
-            </pre>
+        {showDebug && (
+          <div className="space-y-4">
+            {/* Environment Information */}
+            {envInfo && (
+              <div className="p-4 bg-gray-50 rounded-lg text-xs font-mono overflow-x-auto">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-semibold">Environment Status</h3>
+                  <Button
+                    onClick={() => setShowDebug(false)}
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 text-xs"
+                  >
+                    Hide
+                  </Button>
+                </div>
+                <pre className="whitespace-pre-wrap break-all">
+                  {JSON.stringify(envInfo, null, 2)}
+                </pre>
+              </div>
+            )}
+
+            {/* Gallery Debug Information */}
+            {debugInfo && (
+              <div className="p-4 bg-gray-50 rounded-lg text-xs font-mono overflow-x-auto">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-semibold">Gallery Debug Information</h3>
+                </div>
+                <pre className="whitespace-pre-wrap break-all">
+                  {JSON.stringify(debugInfo, null, 2)}
+                </pre>
+              </div>
+            )}
           </div>
         )}
       </div>
