@@ -126,23 +126,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(prediction, { status: 201 }); // Return prediction even if user not found
     }
 
-    // Store original QR code if provided
-    let originalQrUrl = '';
-    if (image instanceof File) {
-      try {
-        console.log("Storing original QR code...");
-        const originalBlob = await put(image.name, image, {
-          access: 'public',
-          token: process.env.BLOB_READ_WRITE_TOKEN,
-        });
-        originalQrUrl = originalBlob.url;
-        console.log("Original QR code stored at:", originalQrUrl);
-      } catch (storageError) {
-        console.error("Error storing original QR code:", storageError);
-        // Continue without storing original QR code
-      }
-    }
-
     // Return the prediction immediately to start polling
     // We'll store the generated image later when it's ready
     console.log("Returning prediction for polling:", prediction);

@@ -10,7 +10,6 @@ interface GeneratedImage {
   id: string;
   imageUrl: string;
   prompt: string;
-  originalQrUrl: string;
   createdAt: string;
   width: number;
   height: number;

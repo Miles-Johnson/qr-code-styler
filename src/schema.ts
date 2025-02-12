@@ -16,7 +16,6 @@ export const generatedImages = pgTable('generated_images', {
   userId: uuid('user_id').notNull().references(() => users.id),
   imageUrl: text('image_url').notNull(),
   prompt: text('prompt').notNull(),
-  originalQrUrl: text('original_qr_url').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
   predictionId: text('prediction_id').notNull(),
   width: integer('width').notNull(),

@@ -142,7 +142,6 @@ export async function GET(
         predictionId: params.id,
         prompt: prediction.input?.prompt || '',
         imageUrl: blob.url,
-        originalQrUrl: prediction.input.image || '',
         width: 512,
         height: 512
       });
