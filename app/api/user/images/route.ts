@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { getGeneratedImagesByUserId } from "@/src/queries/select";
 import { db } from "@/src/db";
-import { users } from "@/src/schema";
+import { users, generatedImages } from "@/src/schema";
+import { eq, sql } from "drizzle-orm";
 
 export const runtime = 'nodejs';
 
@@ -66,6 +67,27 @@ export async function GET(request: NextRequest) {
 
     // Get user's images with pagination
     try {
+      // Enhanced session logging
+      console.log('Debug - User Session Details:', {
+        userId: session.user.id,
+        sessionData: session,
+        timestamp: new Date().toISOString()
+      });
+
+      // Verify user exists
+      const userCheck = await db.select().from(users).where(eq(users.id, session.user.id));
+      console.log('Debug - User Check:', {
+        userFound: userCheck.length > 0,
+        userData: userCheck[0]
+      });
+
+      // Get image count
+      const imageCount = await db
+        .select({ count: sql`count(*)::integer` })
+        .from(generatedImages)
+        .where(eq(generatedImages.userId, session.user.id));
+      console.log('Debug - Image Count:', imageCount[0]);
+
       console.log('Images Route - Attempting to fetch images for user:', {
         userId: session.user.id,
         limit,

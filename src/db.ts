@@ -10,5 +10,15 @@ if (!DATABASE_URL) {
 // Create SQL client with connection pooling
 const sql = neon(DATABASE_URL);
 
-// Create and export database instance
-export const db = drizzle(sql);
+// Create and export database instance with logging
+export const db = drizzle(sql, {
+  logger: {
+    logQuery: (query, params) => {
+      console.log('Debug - SQL Query:', {
+        query,
+        params,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+});
