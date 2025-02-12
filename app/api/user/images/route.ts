@@ -67,11 +67,14 @@ export async function GET(request: NextRequest) {
 
     // Get user's images with pagination
     try {
-      // Enhanced session logging
+      // Enhanced session and request logging
       console.log('Debug - User Session Details:', {
         userId: session.user.id,
+        userEmail: session.user.email,
         sessionData: session,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        requestUrl: request.url,
+        headers: Object.fromEntries(request.headers)
       });
 
       // Verify user exists
@@ -100,9 +103,11 @@ export async function GET(request: NextRequest) {
         userId: session.user.id,
         imageCount: images.length,
         imageUrls: images.map(img => ({
+          id: img.id,
           url: img.imageUrl,
           createdAt: img.createdAt,
-          predictionId: img.predictionId
+          predictionId: img.predictionId,
+          userId: img.userId // Log the userId of each image to verify ownership
         }))
       });
 

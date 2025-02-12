@@ -164,6 +164,8 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
     console.log('UserGallery - Mount/Auth effect:', {
       status,
       hasSession: !!session?.user?.id,
+      userId: session?.user?.id,
+      userEmail: session?.user?.email,
       refreshTrigger
     });
 
