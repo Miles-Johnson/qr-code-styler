@@ -1,8 +1,4 @@
 import type { Config } from 'drizzle-kit';
-import * as dotenv from 'dotenv';
-
-// Load environment variables from .env.local
-dotenv.config({ path: '.env.local' });
 
 // Use DEV_DATABASE_URL in development, DATABASE_URL in production
 const databaseUrl = process.env.NODE_ENV === 'development'
