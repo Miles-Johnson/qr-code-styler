@@ -34,13 +34,6 @@ async function main() {
   } else {
     console.log('❌ Production database URL not configured');
   }
-  
-  // Test development database
-  if (process.env.DEV_DATABASE_URL) {
-    await testDatabase(process.env.DEV_DATABASE_URL, 'Development Database');
-  } else {
-    console.log('❌ Development database URL not configured');
-  }
 }
 
 main().catch(console.error);

@@ -6,10 +6,7 @@ import * as dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
 
-// Use DEV_DATABASE_URL in development, DATABASE_URL in production
-const DATABASE_URL = process.env.NODE_ENV === 'development' 
-  ? process.env.DEV_DATABASE_URL 
-  : process.env.DATABASE_URL;
+const DATABASE_URL = process.env.DATABASE_URL;
 
 if (!DATABASE_URL) {
   throw new Error('Database URL environment variable is required');

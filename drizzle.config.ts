@@ -1,9 +1,6 @@
 import type { Config } from 'drizzle-kit';
 
-// Use DEV_DATABASE_URL in development, DATABASE_URL in production
-const databaseUrl = process.env.NODE_ENV === 'development'
-  ? process.env.DEV_DATABASE_URL
-  : process.env.DATABASE_URL;
+const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
   throw new Error('Database URL environment variable is required');
