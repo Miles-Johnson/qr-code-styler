@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { generatedImages, users, type GeneratedImage, type User } from '../schema';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 
 export async function getUserById(id: string): Promise<User | undefined> {
   const result = await db.select().from(users).where(eq(users.id, id));
@@ -20,7 +20,11 @@ export async function getGeneratedImageById(id: string): Promise<GeneratedImage 
 
 // Get all generated images for a specific user
 export async function getGeneratedImagesByUserId(userId: string): Promise<GeneratedImage[]> {
-  return await db.select().from(generatedImages).where(eq(generatedImages.userId, userId));
+  return await db
+    .select()
+    .from(generatedImages)
+    .where(eq(generatedImages.userId, userId))
+    .orderBy(desc(generatedImages.createdAt)); // Order by newest first
 }
 
 // Get a generated image by prediction ID

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
@@ -118,27 +118,67 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
     }
   };
 
+  // Initial fetch on mount and when authentication status changes
   useEffect(() => {
+    console.log('UserGallery - Mount/Auth effect:', {
+      status,
+      hasSession: !!session?.user?.id,
+      refreshTrigger
+    });
+
     if (status === 'authenticated') {
-      // Reset images and pagination when refreshing
-      if (refreshTrigger > 0) {
-        setImages([]);
-        setPagination(prev => ({ ...prev, offset: 0 }));
-      }
+      setImages([]); // Clear existing images
+      setPagination(prev => ({ ...prev, offset: 0 }));
       fetchImages();
     }
-  }, [status, refreshTrigger]); // Fetch on authentication status change or refresh trigger
+  }, [status]); // Only depend on auth status for initial load
 
-  const loadMore = () => {
+  // Handle refresh trigger separately
+  useEffect(() => {
+    console.log('UserGallery - Refresh effect:', {
+      status,
+      hasSession: !!session?.user?.id,
+      refreshTrigger
+    });
+
+    if (status === 'authenticated' && refreshTrigger > 0) {
+      setImages([]); // Clear existing images
+      setPagination(prev => ({ ...prev, offset: 0 }));
+      fetchImages();
+    }
+  }, [refreshTrigger]); // Only depend on refresh trigger for updates
+
+  const loadMore = useCallback(() => {
+    if (loading) return; // Prevent multiple simultaneous requests
+    
+    console.log('UserGallery - Loading more images:', {
+      currentOffset: pagination.offset,
+      limit: pagination.limit,
+      hasMore: pagination.hasMore
+    });
+
     setPagination(prev => ({
       ...prev,
       offset: prev.offset + prev.limit,
     }));
     fetchImages();
-  };
+  }, [loading, pagination.offset, pagination.limit, pagination.hasMore]);
+
+  // Component state debug logging
+  useEffect(() => {
+    console.log('UserGallery - State update:', {
+      imagesCount: images.length,
+      loading,
+      error,
+      pagination,
+      status,
+      hasSession: !!session?.user?.id
+    });
+  }, [images.length, loading, error, pagination, status, session]);
 
   // Loading state
   if (status === 'loading') {
+    console.log('UserGallery - Rendering loading state');
     return (
       <div className="text-center py-8">
         <div className="animate-pulse space-y-4">
@@ -151,6 +191,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
 
   // Not authenticated state
   if (status === 'unauthenticated') {
+    console.log('UserGallery - Rendering unauthenticated state');
     return (
       <div className="text-center py-8 space-y-4">
         <p className="text-lg font-semibold">Please sign in to view your generated images.</p>
