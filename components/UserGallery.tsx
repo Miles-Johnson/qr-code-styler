@@ -39,9 +39,28 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [showDebug, setShowDebug] = useState(false);
+
+  const checkDebugInfo = async () => {
+    try {
+      const response = await fetch('/api/debug/gallery');
+      const data = await response.json();
+      setDebugInfo(data);
+      setShowDebug(true);
+    } catch (error) {
+      console.error('Debug check failed:', error);
+      toast({
+        title: 'Debug Check Failed',
+        description: error instanceof Error ? error.message : 'Failed to get debug information',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const fetchImages = async () => {
     if (!session?.user?.id) {
+      console.log('UserGallery - No session user ID available');
       return; // Don't fetch if no session
     }
     
@@ -52,7 +71,8 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
       console.log('UserGallery - Fetching images:', {
         limit: pagination.limit,
         offset: pagination.offset,
-        userId: session?.user?.id
+        userId: session?.user?.id,
+        sessionStatus: status
       });
 
       const response = await fetch(
@@ -67,10 +87,16 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
 
       console.log('UserGallery - Response status:', response.status);
       
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
       const data = await response.json();
       console.log('UserGallery - Response data:', {
         imageCount: data.images?.length,
-        pagination: data.pagination
+        pagination: data.pagination,
+        firstImageUrl: data.images?.[0]?.imageUrl,
+        hasImages: data.images?.length > 0
       });
       
       if (pagination.offset === 0) {
@@ -189,7 +215,8 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
                     console.log('Image loaded successfully:', {
                       src: image.imageUrl,
                       naturalWidth: img.naturalWidth,
-                      naturalHeight: img.naturalHeight
+                      naturalHeight: img.naturalHeight,
+                      id: image.id
                     });
                   }}
                   onError={(e) => {
@@ -213,6 +240,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
                   {new Date(image.createdAt).toLocaleDateString()}
                 </p>
                 <p className="text-sm line-clamp-2">{image.prompt}</p>
+                <p className="text-xs text-gray-400 mt-1">ID: {image.id}</p>
               </div>
             </div>
           ))}
@@ -230,6 +258,37 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
           </Button>
         </div>
       )}
+
+      {/* Debug Information */}
+      <div className="mt-8">
+        <Button
+          onClick={checkDebugInfo}
+          variant="outline"
+          size="sm"
+          className="text-xs"
+        >
+          Check Gallery Status
+        </Button>
+
+        {showDebug && debugInfo && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg text-xs font-mono overflow-x-auto">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold">Gallery Debug Information</h3>
+              <Button
+                onClick={() => setShowDebug(false)}
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs"
+              >
+                Hide
+              </Button>
+            </div>
+            <pre className="whitespace-pre-wrap break-all">
+              {JSON.stringify(debugInfo, null, 2)}
+            </pre>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

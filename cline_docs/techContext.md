@@ -1,86 +1,62 @@
-# Technical Context
+# Technical Stack
 
-## Core Technologies
-
-### Frontend
-- Next.js 14 with App Router
-- React 18
-- TypeScript
-- Tailwind CSS
-- shadcn/ui components
-
-### Backend
-- Next.js API Routes
-- PostgreSQL with Neon
-- Drizzle ORM
+## Frontend
+- Next.js 14 (React framework)
+- TypeScript for type safety
+- TailwindCSS for styling
 - NextAuth.js for authentication
+- Next/Image for image optimization
 
-### Image Processing
-- Replicate API for image generation
-- Vercel Blob Storage for image hosting
-- Next.js Image component for optimization
+## Backend
+- Next.js API routes
+- Drizzle ORM for database operations
+- Vercel Blob for image storage
+- PostgreSQL (Neon) for database
 
-## Infrastructure
+## Development Tools
+- ESLint for code quality
+- Prettier for code formatting
+- TypeScript for static typing
+- Git for version control
 
-### Database
-- Neon PostgreSQL
-- Connection pooling enabled
-- Separate dev/prod databases
-- Environment-specific connection strings
+## Debugging Infrastructure
 
-### Storage
-- Vercel Blob Storage for images
-- Public access configuration
-- Blob read/write token required
+### API Debug Endpoints
+1. `/api/debug/gallery`
+   - Authentication status check
+   - Database connection verification
+   - Image URL accessibility testing
+   - Environment information
 
-### Authentication
-- NextAuth.js with JWT strategy
-- Google OAuth provider
-- Credentials provider
-- Environment-specific callback URLs
+### Enhanced Logging
+- Structured JSON logging
+- Operation context tracking
+- Error tracing
+- Resource accessibility verification
 
-## Configuration Requirements
-
-### Environment Variables
-```
-REPLICATE_API_TOKEN=
-DATABASE_URL=
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-NEXTAUTH_SECRET=
-NEXTAUTH_URL=
-BLOB_READ_WRITE_TOKEN=
-DEV_DATABASE_URL=
-```
-
-### Next.js Configuration
-```javascript
-// Image domains for next/image
-remotePatterns: [
-  {
-    protocol: 'https',
-    hostname: 'replicate.delivery',
-  },
-  {
-    protocol: 'https',
-    hostname: '*.public.blob.vercel-storage.com',
-  }
-]
-```
+### UI Debug Tools
+- Debug components for system status
+- Resource accessibility checks
+- Authentication state verification
 
 ## Development Setup
+1. Environment Variables:
+   ```
+   DATABASE_URL=postgresql://...
+   DEV_DATABASE_URL=postgresql://...
+   NEXTAUTH_SECRET=...
+   NEXTAUTH_URL=http://localhost:3000
+   ```
 
-### Local Development
-1. Install dependencies: `npm install`
-2. Set up .env.local
-3. Run development server: `npm run dev`
+2. Development Commands:
+   ```bash
+   npm run dev     # Start development server
+   npm run build   # Production build
+   npm run start   # Start production server
+   ```
 
-### Database Management
-1. Create migrations: `npm run db:generate`
-2. Apply migrations: `npm run db:push`
-3. Type generation: `npm run db:types`
-
-### Production Deployment
-1. Configure environment variables
-2. Verify database connections
-3. Set NEXTAUTH_URL to deployment URL
+## Production Environment
+- Vercel deployment platform
+- Neon PostgreSQL database
+- Vercel Blob storage
+- Production logging enabled

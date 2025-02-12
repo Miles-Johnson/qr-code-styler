@@ -66,13 +66,42 @@ export async function GET(request: NextRequest) {
 
     // Get user's images with pagination
     try {
+      console.log('Images Route - Attempting to fetch images for user:', {
+        userId: session.user.id,
+        limit,
+        offset
+      });
+
       const images = await getGeneratedImagesByUserId(session.user.id);
+      
       console.log('Images Route - Query Results:', {
         userId: session.user.id,
         imageCount: images.length,
-        imageUrls: images.map(img => img.imageUrl),
-        timestamps: images.map(img => img.createdAt)
+        imageUrls: images.map(img => ({
+          url: img.imageUrl,
+          createdAt: img.createdAt,
+          predictionId: img.predictionId
+        }))
       });
+
+      // Verify image URLs are accessible
+      for (const image of images) {
+        try {
+          const response = await fetch(image.imageUrl, { method: 'HEAD' });
+          console.log('Image URL check:', {
+            url: image.imageUrl,
+            status: response.status,
+            ok: response.ok,
+            contentType: response.headers.get('content-type'),
+            contentLength: response.headers.get('content-length')
+          });
+        } catch (error) {
+          console.error('Failed to verify image URL:', {
+            url: image.imageUrl,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      }
       
       // Return empty array if no images found
       if (!images || images.length === 0) {

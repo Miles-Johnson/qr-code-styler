@@ -1,79 +1,74 @@
 # System Architecture Patterns
 
-## Image Storage and Display Pattern
-
-### Storage Flow
-1. Generated images are stored in Vercel Blob storage
-2. Image URLs and metadata stored in PostgreSQL database
-3. Images are associated with user IDs for access control
-
-### Image Loading Pattern
-1. Next.js Image Component Configuration
-   - Domains whitelisted in next.config.js
-   - Support for Vercel Blob storage URLs
-   - Optimized loading with priority for first page
-
-2. Error Handling Pattern
-   - Fallback UI for failed image loads
-   - Comprehensive error logging
-   - User feedback through toast notifications
-
-3. Gallery Loading Pattern
-   - Pagination with configurable limit
-   - Lazy loading for performance
-   - Optimistic UI updates
-
-## Authentication Pattern
-
-### Session Management
-1. NextAuth.js for authentication
-2. JWT strategy for session handling
-3. Environment-specific configuration
-   - Development: localhost:3000
-   - Production: deployed URL
-
-### Database Integration
-1. User data stored in PostgreSQL
-2. Drizzle ORM for database operations
-3. Connection pooling for performance
-
 ## API Patterns
 
 ### Error Handling
-1. Consistent error response format
-2. Detailed logging in production
-3. User-friendly error messages
+- Consistent error response format across all API endpoints
+- Detailed error logging with context
+- Client-friendly error messages
 
-### Data Validation
-1. Type checking with TypeScript
-2. Input validation at API boundaries
-3. Database schema enforcement
+### Debugging
+1. Debug Endpoints
+   - Dedicated `/api/debug/*` routes for system diagnostics
+   - Comprehensive status checks (auth, database, external services)
+   - Safe to use in production (no sensitive data exposure)
+
+2. Enhanced Logging
+   - Structured logging with context
+   - Operation timestamps
+   - User context when available
+   - Resource accessibility checks
 
 ## Frontend Patterns
 
 ### Component Architecture
-1. Client-side components marked with 'use client'
-2. Server-side components for data fetching
-3. Shared UI components in /components/ui
+1. Data Fetching
+   - Server-side data fetching where possible
+   - Client-side fetching with proper error handling
+   - Pagination support for large datasets
+
+2. Error Handling
+   - Fallback UI for error states
+   - User-friendly error messages
+   - Retry mechanisms for failed operations
+
+3. Debug Features
+   - Debug UI components hidden by default
+   - System status checks
+   - Resource accessibility verification
 
 ### State Management
-1. React hooks for local state
-2. Context for global state
-3. Server state with SWR/React Query
+1. Component State
+   - useState for local component state
+   - useEffect for side effects and data fetching
+   - Props for component configuration
 
-### UI/UX Patterns
-1. Loading states with skeleton screens
-2. Error states with retry mechanisms
-3. Toast notifications for user feedback
+2. Authentication State
+   - NextAuth.js session management
+   - Protected routes and components
+   - Session status checks
 
-## Development Patterns
+## Database Patterns
 
-### Environment Configuration
-1. Local development with .env.local
-2. Production with environment variables
-3. Type-safe configuration
+### Query Patterns
+1. Select Operations
+   - Paginated queries for large datasets
+   - Efficient joins and relationships
+   - User-scoped queries for security
 
-### Database Management
-1. Drizzle for schema management
-2. Migration scripts for schema changes
-3. Separate dev/prod databases
+2. Connection Management
+   - Connection pooling
+   - Error handling and retries
+   - Health checks
+
+## Image Handling
+
+### Storage
+- Vercel Blob storage for image files
+- URL-based access
+- Accessibility verification
+
+### Display
+- Next.js Image component for optimization
+- Lazy loading for performance
+- Error fallbacks for failed loads
