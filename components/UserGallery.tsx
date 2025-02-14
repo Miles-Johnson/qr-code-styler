@@ -5,6 +5,13 @@ import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
 interface GeneratedImage {
   id: string;
@@ -68,12 +75,21 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
 
   if (status === 'loading') {
     return (
-      <div className="text-center py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-48 bg-slate-800 rounded-lg"></div>
-          <div className="h-48 bg-slate-800 rounded-lg"></div>
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="relative bg-slate-900/50 rounded-lg shadow-md overflow-hidden border border-slate-800">
+                  <div className="aspect-square bg-slate-800" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 bg-slate-800 rounded w-1/3" />
+                    <div className="h-4 bg-slate-800 rounded w-2/3" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
     );
   }
 
@@ -96,10 +112,19 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
       </div>
       
       {loading ? (
-        <div className="text-center py-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-48 bg-slate-800 rounded-lg"></div>
-            <div className="h-48 bg-slate-800 rounded-lg"></div>
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="animate-pulse">
+                <div className="relative bg-slate-900/50 rounded-lg shadow-md overflow-hidden border border-slate-800">
+                  <div className="aspect-square bg-slate-800" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 bg-slate-800 rounded w-1/3" />
+                    <div className="h-4 bg-slate-800 rounded w-2/3" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       ) : error ? (
@@ -118,39 +143,52 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
           <p className="text-sm text-slate-400">Create your first QR code to get started!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {images.map((image) => (
-            <div
-              key={image.id}
-              className="relative bg-slate-900/50 rounded-lg shadow-md overflow-hidden border border-slate-800 hover:border-amber-500/50 transition-colors"
-            >
-              <div className="relative aspect-square bg-slate-800">
-                <Image
-                  src={image.imageUrl}
-                  alt={image.prompt}
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  priority={false}
-                  loading="lazy"
-                  quality={90}
-                  onError={() => {
-                    toast({
-                      title: 'Image Load Error',
-                      description: `Failed to load image: ${image.imageUrl}`,
-                      variant: 'destructive',
-                    });
-                  }}
-                />
-              </div>
-              <div className="p-4 space-y-2">
-                <p className="text-sm text-slate-400">
-                  {new Date(image.createdAt).toLocaleDateString()}
-                </p>
-                <p className="text-sm text-slate-200 line-clamp-2">{image.prompt}</p>
-              </div>
-            </div>
-          ))}
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-12">
+          <Carousel
+            opts={{
+              align: "start",
+              loop: true,
+              slidesToScroll: 1,
+              containScroll: "trimSnaps"
+            }}
+            className="w-full relative group select-none touch-pan-y"
+          >
+            <CarouselContent className="cursor-grab active:cursor-grabbing">
+              {images.map((image) => (
+                <CarouselItem key={image.id} className="md:basis-1/2 lg:basis-1/3 pl-4 transition-opacity duration-300 ease-in-out">
+                  <div className="relative bg-slate-900/50 rounded-lg shadow-md overflow-hidden border border-slate-800 hover:border-amber-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10 hover:scale-[1.02]">
+                    <div className="relative aspect-square bg-slate-800">
+                      <Image
+                        src={image.imageUrl}
+                        alt={image.prompt}
+                        fill
+                        className="object-contain"
+                        sizes="33vw"
+                        priority={false}
+                        loading="lazy"
+                        quality={90}
+                        onError={() => {
+                          toast({
+                            title: 'Image Load Error',
+                            description: `Failed to load image: ${image.imageUrl}`,
+                            variant: 'destructive',
+                          });
+                        }}
+                      />
+                    </div>
+                    <div className="p-4 space-y-2">
+                      <p className="text-sm text-slate-400">
+                        {new Date(image.createdAt).toLocaleDateString()}
+                      </p>
+                      <p className="text-sm text-slate-200 line-clamp-2">{image.prompt}</p>
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="-left-2 sm:-left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-slate-900/50 hover:bg-slate-900/75 border-slate-800" />
+            <CarouselNext className="-right-2 sm:-right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-slate-900/50 hover:bg-slate-900/75 border-slate-800" />
+          </Carousel>
         </div>
       )}
     </div>

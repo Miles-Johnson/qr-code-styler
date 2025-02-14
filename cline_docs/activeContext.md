@@ -1,36 +1,21 @@
-# Current Task
-Fixing gallery image display issues:
+# Active Context
 
-1. Fixed API Route:
-- Added image URL verification
-- Added detailed logging throughout
-- Added validation of image accessibility
-- Added filtering of invalid images
+## Current Task
+Fixed image gallery display issues by:
+1. Simplifying UserGallery component
+2. Removing unnecessary pagination and debug code
+3. Fixing refreshTrigger prop
+4. Streamlining images API route
 
-2. Improved Error Handling:
-- Added URL accessibility checks
-- Added filtering of inaccessible images
-- Added detailed error logging
-- Added validation logging
+## Recent Changes
+- Removed original_qr_url column from database schema
+- Simplified UserGallery component to basic functionality
+- Streamlined images API route to direct fetch and return
+- Fixed TypeScript errors with refreshTrigger prop
+- Maintained auto-refresh functionality for new images
 
-3. Added Response Validation:
-- Added logging of final response
-- Added validation of image count
-- Added pagination validation
-- Added URL accessibility validation
-
-# Recent Changes
-1. Updated /api/user/images route to properly handle images
-2. Added image URL verification
-3. Added comprehensive logging
-4. Added response validation
-
-# Next Steps
-1. Monitor API responses to ensure:
-   - Images are properly returned
-   - URLs are accessible
-   - Pagination works correctly
-2. Watch for:
-   - URL accessibility issues
-   - Invalid image data
-   - Pagination edge cases
+## Next Steps
+1. Address security vulnerabilities reported by GitHub Dependabot
+2. Consider adding back pagination if image count grows large
+3. Monitor image loading performance
+4. Consider implementing image caching strategy

@@ -1,74 +1,72 @@
-# Technical Stack
+# Technical Context
 
-## Frontend
-- Next.js 14 (React framework)
+## Environment Setup
+- Node.js runtime
+- Next.js 13 framework
 - TypeScript for type safety
-- TailwindCSS for styling
-- NextAuth.js for authentication
-- Next/Image for image optimization
-- React Hooks for state management
-- Custom effect separation for lifecycle management
-
-## Backend
-- Next.js API routes
-- Drizzle ORM for database operations
-  - Optimized queries with ordering
-  - Type-safe database operations
-  - Connection pooling
-- Vercel Blob for image storage
-  - URL-based access
-  - Public access configuration
-- PostgreSQL (Neon) for database
-  - Ordered data retrieval
-  - Efficient pagination
-
-## Development Tools
-- ESLint for code quality
-- Prettier for code formatting
-- TypeScript for static typing
-- Git for version control
-
-## Debugging Infrastructure
-
-### API Debug Endpoints
-1. `/api/debug/gallery`
-   - Authentication status check
-   - Database connection verification
-   - Image URL accessibility testing
-   - Environment information
-
-### Enhanced Logging
-- Structured JSON logging
-- Operation context tracking
-- Error tracing
-- Resource accessibility verification
-- Component lifecycle logging
-- State change monitoring
-- Image loading tracking
-
-### UI Debug Tools
-- Debug components for system status
-- Resource accessibility checks
-- Authentication state verification
-
-## Development Setup
-1. Environment Variables:
-   ```
-   DATABASE_URL=postgresql://...
-   DEV_DATABASE_URL=postgresql://...
-   NEXTAUTH_SECRET=...
-   NEXTAUTH_URL=http://localhost:3000
-   ```
-
-2. Development Commands:
-   ```bash
-   npm run dev     # Start development server
-   npm run build   # Production build
-   npm run start   # Start production server
-   ```
-
-## Production Environment
 - Vercel deployment platform
-- Neon PostgreSQL database
-- Vercel Blob storage
-- Production logging enabled
+
+## Dependencies
+### Core
+- next: ^13.5.1
+- react: ^18.2.0
+- typescript: ^5.2.2
+- @vercel/blob: ^0.22.0
+- drizzle-orm: ^0.38.3
+- next-auth: ^4.24.11
+
+### UI/Styling
+- tailwindcss: ^3.3.3
+- shadcn/ui components
+- lucide-react icons
+
+### Database
+- @neondatabase/serverless
+- drizzle-kit for migrations
+- PostgreSQL database
+
+### AI/Image Processing
+- replicate: ^1.0.1
+- sharp: ^0.33.2
+
+## Configuration
+### Environment Variables
+- DATABASE_URL: Neon PostgreSQL connection
+- BLOB_READ_WRITE_TOKEN: Vercel Blob access
+- REPLICATE_API_TOKEN: AI service access
+- NEXTAUTH_SECRET: Auth encryption
+- GOOGLE_CLIENT_ID/SECRET: OAuth
+
+### Development Tools
+- drizzle-kit for migrations
+- cross-env for environment vars
+- tsx for TypeScript execution
+
+## API Structure
+### Authentication
+- NextAuth.js routes
+- Google OAuth provider
+- JWT session handling
+
+### Image Processing
+- /api/predictions: AI generation
+- /api/user/images: Gallery data
+- Vercel Blob integration
+
+### Database
+- Drizzle ORM queries
+- PostgreSQL on Neon
+- Migration system
+
+## Recent Changes
+1. Simplified gallery implementation
+2. Removed original_qr_url column
+3. Streamlined API responses
+4. Updated error handling
+5. Improved documentation
+
+## Known Technical Debt
+1. Security vulnerabilities need updating
+2. Basic image caching
+3. No pagination implementation
+4. Limited error recovery
