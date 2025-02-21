@@ -206,21 +206,25 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
               </CarouselContent>
             </Carousel>
             
-            <button 
-              onClick={() => api?.scrollPrev()}
-              className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-slate-900/50 hover:bg-slate-900/75 border border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              aria-label="Previous slide"
-            >
-              <ChevronLeft className="h-8 w-8 text-slate-200" />
-            </button>
+            <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-slate-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-start">
+              <button 
+                onClick={() => api?.scrollPrev()}
+                className="ml-2 w-12 h-20 flex items-center justify-center rounded-r-full bg-slate-900/50 hover:bg-slate-900/75 border-y border-r border-slate-800"
+                aria-label="Previous slide"
+              >
+                <ChevronLeft className="h-8 w-8 text-slate-200" />
+              </button>
+            </div>
             
-            <button 
-              onClick={() => api?.scrollNext()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-slate-900/50 hover:bg-slate-900/75 border border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              aria-label="Next slide"
-            >
-              <ChevronRight className="h-8 w-8 text-slate-200" />
-            </button>
+            <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-slate-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-end">
+              <button 
+                onClick={() => api?.scrollNext()}
+                className="mr-2 w-12 h-20 flex items-center justify-center rounded-l-full bg-slate-900/50 hover:bg-slate-900/75 border-y border-l border-slate-800"
+                aria-label="Next slide"
+              >
+                <ChevronRight className="h-8 w-8 text-slate-200" />
+              </button>
+            </div>
           </div>
         </div>
       )}
