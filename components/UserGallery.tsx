@@ -211,7 +211,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
               className="carousel-nav-button carousel-nav-button-left"
               aria-label="Previous slide"
             >
-              <ChevronLeft className="h-8 w-8 text-slate-200" />
+              <ChevronLeft className="h-6 w-6 text-slate-200" />
             </button>
             
             <button 
@@ -219,7 +219,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
               className="carousel-nav-button carousel-nav-button-right"
               aria-label="Next slide"
             >
-              <ChevronRight className="h-8 w-8 text-slate-200" />
+              <ChevronRight className="h-6 w-6 text-slate-200" />
             </button>
           </div>
         </div>

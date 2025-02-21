@@ -83,16 +83,20 @@
 
 @layer components {
   .carousel-nav-button {
-    @apply absolute top-1/2 -translate-y-1/2 w-12 h-20 flex items-center justify-center 
-           bg-amber-500/30 hover:bg-amber-500/50 border-amber-500/60 transition-all duration-300 
-           z-10 hover:scale-105;
+    @apply absolute top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center 
+           bg-amber-500/30 hover:bg-amber-500/50 border border-amber-500/60 transition-all duration-300 
+           z-10 hover:scale-105 rounded-full hover:bg-amber-500/50;
   }
   
   .carousel-nav-button-left {
-    @apply -left-2 rounded-r-full border-y border-r;
+    @apply left-2;
   }
   
   .carousel-nav-button-right {
-    @apply -right-2 rounded-l-full border-y border-l;
+    @apply right-2;
+  }
+
+  .carousel-nav-button:hover {
+    @apply bg-[#f59e0b];
   }
 }
