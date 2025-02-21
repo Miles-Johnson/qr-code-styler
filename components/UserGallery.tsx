@@ -169,7 +169,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
                 containScroll: "trimSnaps"
               }}
               setApi={setApi}
-              className="w-full relative group select-none touch-pan-y"
+              className="w-full relative select-none touch-pan-y"
             >
               <CarouselContent className="cursor-grab active:cursor-grabbing">
                 {images.map((image) => (
@@ -208,7 +208,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
             
             <button 
               onClick={() => api?.scrollPrev()}
-              className="absolute -left-2 top-1/2 -translate-y-1/2 w-12 h-20 flex items-center justify-center rounded-r-full bg-amber-500/20 hover:bg-amber-500/30 border-y border-r border-amber-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 hover:scale-105"
+              className="carousel-nav-button carousel-nav-button-left"
               aria-label="Previous slide"
             >
               <ChevronLeft className="h-8 w-8 text-slate-200" />
@@ -216,7 +216,7 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
             
             <button 
               onClick={() => api?.scrollNext()}
-              className="absolute -right-2 top-1/2 -translate-y-1/2 w-12 h-20 flex items-center justify-center rounded-l-full bg-amber-500/20 hover:bg-amber-500/30 border-y border-l border-amber-500/40 opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 hover:scale-105"
+              className="carousel-nav-button carousel-nav-button-right"
               aria-label="Next slide"
             >
               <ChevronRight className="h-8 w-8 text-slate-200" />
