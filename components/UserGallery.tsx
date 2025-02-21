@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
 import { useToast } from '@/hooks/use-toast';
@@ -9,9 +9,9 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
+  type CarouselApi,
 } from '@/components/ui/carousel';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface GeneratedImage {
   id: string;
@@ -32,6 +32,22 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [api, setApi] = useState<CarouselApi>();
+
+  useEffect(() => {
+    if (!api) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        api.scrollPrev();
+      } else if (e.key === 'ArrowRight') {
+        api.scrollNext();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [api]);
 
   const fetchImages = useCallback(async () => {
     if (!session?.user?.id) {
@@ -144,18 +160,20 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
         </div>
       ) : (
         <div className="w-full max-w-5xl mx-auto px-4 sm:px-12">
-          <Carousel
-            opts={{
-              align: "start",
-              loop: true,
-              slidesToScroll: 1,
-              containScroll: "trimSnaps"
-            }}
-            className="w-full relative group select-none touch-pan-y"
-          >
-            <CarouselContent className="cursor-grab active:cursor-grabbing">
-              {images.map((image) => (
-                <CarouselItem key={image.id} className="md:basis-1/2 lg:basis-1/3 pl-4 transition-opacity duration-300 ease-in-out">
+          <div className="relative w-full">
+            <Carousel
+              opts={{
+                align: "start",
+                loop: true,
+                slidesToScroll: 1,
+                containScroll: "trimSnaps"
+              }}
+              setApi={setApi}
+              className="w-full relative group select-none touch-pan-y"
+            >
+              <CarouselContent className="cursor-grab active:cursor-grabbing">
+                {images.map((image) => (
+                  <CarouselItem key={image.id} className="md:basis-1/2 lg:basis-1/3 pl-4 transition-opacity duration-300 ease-in-out">
                   <div className="relative bg-slate-900/50 rounded-lg shadow-md overflow-hidden border border-slate-800 hover:border-amber-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10 hover:scale-[1.02]">
                     <div className="relative aspect-square bg-slate-800">
                       <Image
@@ -185,10 +203,25 @@ export function UserGallery({ refreshTrigger = 0 }: UserGalleryProps) {
                   </div>
                 </CarouselItem>
               ))}
-            </CarouselContent>
-            <CarouselPrevious className="-left-2 sm:-left-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-slate-900/50 hover:bg-slate-900/75 border-slate-800" />
-            <CarouselNext className="-right-2 sm:-right-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-slate-900/50 hover:bg-slate-900/75 border-slate-800" />
-          </Carousel>
+              </CarouselContent>
+            </Carousel>
+            
+            <button 
+              onClick={() => api?.scrollPrev()}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-slate-900/50 hover:bg-slate-900/75 border border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="h-8 w-8 text-slate-200" />
+            </button>
+            
+            <button 
+              onClick={() => api?.scrollNext()}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center rounded-full bg-slate-900/50 hover:bg-slate-900/75 border border-slate-800 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="h-8 w-8 text-slate-200" />
+            </button>
+          </div>
         </div>
       )}
     </div>
