@@ -84,8 +84,8 @@
 @layer components {
   .carousel-nav-button {
     @apply absolute top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center 
-           bg-amber-500/30 hover:bg-amber-500/50 border border-amber-500/60 transition-all duration-300 
-           z-10 hover:scale-105 rounded-full hover:bg-amber-500/50;
+           bg-slate-900/50 hover:bg-slate-900/75 transition-all duration-300 
+           z-10 hover:scale-105 rounded-full;
   }
   
   .carousel-nav-button-left {
@@ -96,7 +96,11 @@
     @apply right-2;
   }
 
-  .carousel-nav-button:hover {
-    @apply bg-[#f59e0b];
+  .carousel-nav-button svg {
+    @apply text-amber-500;
+  }
+
+  .carousel-nav-button:hover svg {
+    @apply text-amber-400;
   }
 }
