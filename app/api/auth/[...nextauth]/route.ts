@@ -96,7 +96,16 @@ export const authOptions: AuthOptions = {
             dbUser = newUser;
             console.log('Successfully created new user:', dbUser);
           }
-          
+
+          // Ensure the user object passed to JWT has the database ID
+          if (dbUser?.id) {
+            user.id = dbUser.id; // Attach the database ID
+            user.role = dbUser.role; // Attach the role as well
+          } else {
+            console.error('Could not determine dbUser ID in signIn for', user.email);
+            return false; // Prevent sign-in if we can't get the ID
+          }
+
           return true;
         } catch (error) {
           console.error('Detailed error in signIn callback:', {
@@ -110,13 +119,28 @@ export const authOptions: AuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user, account }) {
-      if (user?.email) {
+    async jwt({ token, user }) {
+      // If user object has ID (passed from signIn), use it directly
+      if (user?.id) {
+        token.id = user.id;
+        token.role = user.role; // Role should also be passed from signIn
+
+        // Update last login time using the direct ID
+        try {
+          await db.update(users)
+            .set({ lastLogin: new Date() })
+            .where(eq(users.id, user.id));
+        } catch (error) {
+          console.error('Error updating last login (direct ID):', error);
+        }
+      }
+      // Fallback: If ID isn't on user, try email lookup (e.g., for credentials flow)
+      else if (user?.email) {
         const dbUser = await getUserByEmail(user.email);
         if (dbUser) {
           token.id = dbUser.id;
           token.role = dbUser.role;
-          
+
           // Update last login time
           try {
             await db.update(users)
