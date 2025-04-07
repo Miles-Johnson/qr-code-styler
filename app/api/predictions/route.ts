@@ -2,10 +2,11 @@ import Replicate from "replicate";
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
-import { getUserByEmail } from "@/src/queries/select";
-import { insertGeneratedImage } from "@/src/queries/insert";
-import { put } from '@vercel/blob';
+import { getUserByEmail } from "@/src/queries/select"; // Keep for potential future use? Or remove if unused.
+import { insertGeneratedImage } from "@/src/queries/insert"; // Keep for potential future use? Or remove if unused.
+import { put } from '@vercel/blob'; // Keep for potential future use? Or remove if unused.
 import { subscriptionMiddleware } from "@/src/middleware/subscription";
+import { getUserSubscription } from "@/src/utils/subscription"; // Import needed function
 
 export const maxDuration = 60; // 5 minutes
 export const dynamic = 'force-dynamic';
@@ -28,7 +29,19 @@ async function handlePrediction(req: NextRequest) {
       }, { status: 500 });
     }
 
-    // Parse FormData instead of JSON
+    // Get user session directly in the handler
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      // This should technically be caught by middleware, but double-check
+      return NextResponse.json({ detail: "Authentication required" }, { status: 401 });
+    }
+    const userId = session.user.id;
+
+    // Fetch subscription limits directly in the handler
+    const subscription = await getUserSubscription(userId);
+    const { maxWidth, maxHeight, queuePriority } = subscription.limits;
+
+    // Parse FormData
     const formData = await req.formData();
     const prompt = formData.get('prompt') as string || "default prompt...";
     const file = formData.get('file') as File | null;
@@ -36,11 +49,6 @@ async function handlePrediction(req: NextRequest) {
     if (!file) {
       return NextResponse.json({ detail: "No file provided in FormData" }, { status: 400 });
     }
-
-    // Read limits from headers set by middleware
-    const maxWidth = parseInt(req.headers.get('X-Max-Width') || '512', 10);
-    const maxHeight = parseInt(req.headers.get('X-Max-Height') || '512', 10);
-    const queuePriority = parseInt(req.headers.get('X-Queue-Priority') || '0', 10);
 
     // Convert file to base64 data URI for Replicate
     const fileBuffer = await file.arrayBuffer();
@@ -62,11 +70,11 @@ async function handlePrediction(req: NextRequest) {
       image: input.image ? "<<base64 data>>" : undefined
     });
 
-    // Create prediction with queue priority
+    // Create prediction with queue priority fetched directly
     const options: any = {
       version: "d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb", // Consider moving version to env var
       input,
-      priority: queuePriority, // Use priority from header
+      priority: queuePriority, // Use priority fetched directly
     };
 
     // Add webhook configuration if available

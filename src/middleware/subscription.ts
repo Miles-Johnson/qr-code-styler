@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserSubscription, canGenerateImage, incrementGenerationCount } from '../utils/subscription';
+// Removed getUserSubscription import as it's no longer called here
+import { canGenerateImage, incrementGenerationCount } from '../utils/subscription';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
@@ -34,31 +35,10 @@ export async function subscriptionMiddleware(
         { status: 403 }
       );
     }
-    
-    // Get user subscription to determine image size limits
-    const subscription = await getUserSubscription(userId);
-    const { maxWidth, maxHeight, queuePriority } = subscription.limits;
 
-    // Clone headers and add subscription limits
-    const requestHeaders = new Headers(req.headers);
-    requestHeaders.set('X-Max-Width', String(maxWidth));
-    requestHeaders.set('X-Max-Height', String(maxHeight));
-    requestHeaders.set('X-Queue-Priority', String(queuePriority));
-    // Explicitly preserve Content-Type just in case
-    if (req.headers.has('Content-Type')) {
-      requestHeaders.set('Content-Type', req.headers.get('Content-Type')!);
-    }
-
-    // Pass the original request with modified headers to the handler
-    const response = await handler(
-      // @ts-ignore - duplex: 'half' is required by runtime when passing body
-      new NextRequest(req.url, {
-        headers: requestHeaders, // Use headers with explicit Content-Type
-        method: req.method,
-        body: req.body, // Pass original body (FormData)
-        duplex: 'half' // Re-added as required by runtime
-      })
-    );
+    // Middleware now only checks if user *can* generate,
+    // the handler will fetch specific limits if needed.
+    const response = await handler(req); // Pass original request
 
     // If successful, increment the generation count
     if (response.status === 200 || response.status === 201) {
