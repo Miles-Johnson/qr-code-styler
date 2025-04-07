@@ -6,6 +6,8 @@ import {
   Dialog,
   DialogContent,
   DialogTrigger,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -54,6 +56,10 @@ export default function LoginButton() {
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md bg-transparent border-0 p-0">
+        <DialogTitle className="sr-only">Sign in</DialogTitle>
+        <DialogDescription className="sr-only">
+          Sign in to your account to create QR codes
+        </DialogDescription>
         <SignInForm />
       </DialogContent>
     </Dialog>

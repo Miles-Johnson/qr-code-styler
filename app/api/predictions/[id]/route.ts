@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import Replicate from "replicate";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import { getGeneratedImageByPredictionId } from "@/src/queries/select";
-import { insertGeneratedImage } from "@/src/queries/insert";
+import { getGeneratedImageByPredictionId, getUserByEmail } from "@/src/queries/select";
+import { insertGeneratedImage, insertUser } from "@/src/queries/insert";
 import { put } from '@vercel/blob';
+import bcrypt from "bcryptjs";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
@@ -145,6 +146,40 @@ export async function GET(
         }, { status: 400 });
       }
 
+      // Verify user exists in database
+      const userExists = await getUserByEmail(session.user.email);
+      if (!userExists) {
+        console.error('User not found in database:', {
+          id: session.user.id,
+          email: session.user.email
+        });
+
+        // Attempt to recreate user
+        try {
+          const [newUser] = await insertUser({
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.name || null,
+            role: 'user',
+            emailVerified: true,
+            hashedPassword: await bcrypt.hash(Math.random().toString(36), 10),
+            lastLogin: new Date(),
+            createdAt: new Date(),
+          });
+          console.log('Successfully recreated user:', newUser);
+        } catch (userError: any) {
+          console.error('Failed to recreate user:', {
+            error: userError.message,
+            stack: userError.stack
+          });
+          return NextResponse.json({
+            ...prediction,
+            storageError: 'User record missing and recreation failed',
+            errorDetail: userError.message
+          }, { status: 500 });
+        }
+      }
+
       // Store in database with detailed error logging
       let storedData;
       try {
@@ -154,9 +189,23 @@ export async function GET(
           prompt: prediction.input?.prompt || '',
           imageUrl: blob.url,
           width: 512,
-          height: 512
+          height: 512,
+          originalQrUrl: prediction.input.image || null
         });
       } catch (dbError: any) {
+        // Check if it's a foreign key violation
+        if (dbError.message.includes('foreign key constraint')) {
+          console.error('Foreign key violation - user may have been deleted:', {
+            userId: session.user.id,
+            email: session.user.email
+          });
+          return NextResponse.json({
+            ...prediction,
+            storageError: 'User account issue',
+            errorDetail: 'Please try signing out and signing back in'
+          }, { status: 401 });
+        }
+
         console.error('Database insertion error:', {
           error: dbError.message,
           stack: dbError.stack,

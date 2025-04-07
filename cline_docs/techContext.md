@@ -1,72 +1,141 @@
 # Technical Context
 
-## Environment Setup
-- Node.js runtime
-- Next.js 13 framework
-- TypeScript for type safety
-- Vercel deployment platform
+## Development Environment
+- Next.js 13.5.8
+- TypeScript
+- Node.js
+- PostgreSQL (Neon)
+- Stripe API
 
-## Dependencies
-### Core
-- next: ^13.5.1
-- react: ^18.2.0
-- typescript: ^5.2.2
-- @vercel/blob: ^0.22.0
-- drizzle-orm: ^0.38.3
-- next-auth: ^4.24.11
+## Key Dependencies
+- NextAuth for authentication
+- Drizzle ORM for database
+- Stripe SDK for payments
+- Replicate for AI processing
+- TailwindCSS for styling
+- Radix UI for components
 
-### UI/Styling
-- tailwindcss: ^3.3.3
-- shadcn/ui components
-- lucide-react icons
+## API Integrations
+1. Stripe
+   - Secret Key: sk_test_51OUHMUFQBFx9IphFjoRzls7Dcuy0tRyqeWgHzZiZTRLfdBLIWpRIrsQEKPHZ3MoXUZH9OI7yLUuB0XsgXIMBDceW00YgIONQcz
+   - Basic Plan ID: price_1R0IC5FQBFx9IphFjKf7UL5b
+   - Premium Plan ID: price_1R0ICzFQBFx9IphFYbQMTegf
+   - Webhook Secret: whsec_HzC29kRon3YyhbDj45COKn8Pm6jpGLfx
 
-### Database
-- @neondatabase/serverless
-- drizzle-kit for migrations
-- PostgreSQL database
+2. Google OAuth
+   - Client ID: 495423385211-ecdg8km075us77rprrose4di334u4cd9.apps.googleusercontent.com
+   - Redirect URI: http://localhost:3000/api/auth/callback/google
 
-### AI/Image Processing
-- replicate: ^1.0.1
-- sharp: ^0.33.2
+3. Replicate
+   - API Token: [REDACTED - Set via REPLICATE_API_TOKEN env var]
+   - Model Version: d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb
 
-## Configuration
-### Environment Variables
-- DATABASE_URL: Neon PostgreSQL connection
-- BLOB_READ_WRITE_TOKEN: Vercel Blob access
-- REPLICATE_API_TOKEN: AI service access
-- NEXTAUTH_SECRET: Auth encryption
-- GOOGLE_CLIENT_ID/SECRET: OAuth
+## Database Schema
+1. Users Table
+   ```sql
+   - id: uuid PRIMARY KEY
+   - email: text UNIQUE
+   - name: text
+   - subscription_tier: text
+   - subscription_expires_at: timestamp
+   - monthly_generation_count: integer
+   - monthly_generation_reset: timestamp
+   - stripe_customer_id: text
+   ```
 
-### Development Tools
-- drizzle-kit for migrations
-- cross-env for environment vars
-- tsx for TypeScript execution
+2. Generated Images Table
+   ```sql
+   - id: uuid PRIMARY KEY
+   - user_id: uuid REFERENCES users(id)
+   - image_url: text
+   - prompt: text
+   - created_at: timestamp
+   - prediction_id: text
+   - width: integer
+   - height: integer
+   ```
 
-## API Structure
-### Authentication
-- NextAuth.js routes
-- Google OAuth provider
-- JWT session handling
+3. Subscription Plans Table
+   ```sql
+   - id: uuid PRIMARY KEY
+   - name: text UNIQUE
+   - stripe_price_id: text
+   - price: integer
+   - max_monthly_generations: integer
+   - max_image_width: integer
+   - max_image_height: integer
+   - queue_priority: integer
+   - features: text (JSON)
+   ```
 
-### Image Processing
-- /api/predictions: AI generation
-- /api/user/images: Gallery data
-- Vercel Blob integration
+4. Payments Table
+   ```sql
+   - id: uuid PRIMARY KEY
+   - user_id: uuid REFERENCES users(id)
+   - plan_id: uuid REFERENCES subscription_plans(id)
+   - amount: integer
+   - stripe_payment_intent_id: text
+   - stripe_subscription_id: text
+   - status: text
+   - created_at: timestamp
+   ```
 
-### Database
-- Drizzle ORM queries
-- PostgreSQL on Neon
-- Migration system
+## API Routes
+1. Authentication
+   - /api/auth/[...nextauth]
+   - /api/auth/callback/google
 
-## Recent Changes
-1. Simplified gallery implementation
-2. Removed original_qr_url column
-3. Streamlined API responses
-4. Updated error handling
-5. Improved documentation
+2. Subscription
+   - /api/subscription/checkout
+   - /api/webhook/stripe
+   - /api/user/subscription
 
-## Known Technical Debt
-1. Security vulnerabilities need updating
-2. Basic image caching
-3. No pagination implementation
-4. Limited error recovery
+3. Image Generation
+   - /api/predictions
+   - /api/predictions/[id]
+
+## Frontend Routes
+1. Main Routes
+   - / (home)
+   - /subscription
+   - /subscription/success
+   - /subscription/cancel
+
+2. Protected Routes
+   - /dashboard
+   - /settings
+   - /gallery
+
+## Development Commands
+```bash
+# Development
+npm run dev
+
+# Database Migrations
+npm run migrate
+npm run migrate:subscription
+
+# Testing
+npm run test-env
+npm run test-db
+npm run test-insert
+```
+
+## Environment Variables
+Required in .env.local:
+- DATABASE_URL
+- NEXTAUTH_SECRET
+- NEXTAUTH_URL
+- GOOGLE_CLIENT_ID
+- GOOGLE_CLIENT_SECRET
+- STRIPE_SECRET_KEY
+- STRIPE_WEBHOOK_SECRET
+- REPLICATE_API_TOKEN
+- BLOB_READ_WRITE_TOKEN
+
+## Deployment
+- Vercel for hosting
+- Neon for database
+- Stripe for payments
+- Google Cloud Console for OAuth
+- Replicate for AI processing

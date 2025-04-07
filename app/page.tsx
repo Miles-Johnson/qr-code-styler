@@ -7,11 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { QrCode, Wand2, Zap, Shield, Eye, Palette } from "lucide-react";
 import Link from "next/link";
-import { useState, useCallback, useMemo } from "react";
+import { QRCodeModal } from "@/components/QRCodeModal";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import LoginButton from '@/components/LoginButton';
 import AuthCheck from '@/components/AuthCheck';
 import { UserGallery } from '@/components/UserGallery';
+import { SubscriptionStatus } from '@/components/SubscriptionStatus';
 import Image from "next/image";
 import { Prediction as ReplicatePrediction } from "replicate";
 
@@ -51,6 +53,8 @@ export default function Home() {
     const [fileName, setFileName] = useState<string | null>(null);
     const [showGallery, setShowGallery] = useState(false);
     const [galleryRefreshTrigger, setGalleryRefreshTrigger] = useState(0);
+    const [generatedQrFile, setGeneratedQrFile] = useState<File | null>(null);
+    const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
 
     const toggleGallery = useCallback(() => {
         setShowGallery(prev => {
@@ -75,11 +79,56 @@ export default function Home() {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            // Clean up previous preview URL if it exists
+            if (qrPreviewUrl) {
+                URL.revokeObjectURL(qrPreviewUrl);
+            }
+
+            // Create new preview URL for the uploaded file
+            const previewUrl = URL.createObjectURL(file);
+            setQrPreviewUrl(previewUrl);
             setFileName(file.name);
+            // Clear any generated QR code since we're uploading
+            setGeneratedQrFile(null);
         } else {
-            setFileName(null)
+            setFileName(null);
+            if (qrPreviewUrl) {
+                URL.revokeObjectURL(qrPreviewUrl);
+                setQrPreviewUrl(null);
+            }
         }
     };
+
+    const handleQRCodeGenerated = (file: File) => {
+        // Clean up previous preview URL if it exists
+        if (qrPreviewUrl) {
+            URL.revokeObjectURL(qrPreviewUrl);
+        }
+
+        // Create new preview URL
+        const previewUrl = URL.createObjectURL(file);
+        setQrPreviewUrl(previewUrl);
+        setGeneratedQrFile(file);
+
+        // Set the file in the hidden input
+        const input = document.getElementById('image') as HTMLInputElement;
+        if (input) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            input.files = dataTransfer.files;
+            const event = new Event('change', { bubbles: true });
+            input.dispatchEvent(event);
+        }
+    };
+
+    // Clean up object URL when component unmounts
+    useEffect(() => {
+        return () => {
+            if (qrPreviewUrl) {
+                URL.revokeObjectURL(qrPreviewUrl);
+            }
+        };
+    }, [qrPreviewUrl]);
 
     const startPolling = async (id: string) => {
         let currentPrediction: CustomPrediction | null = null;
@@ -262,15 +311,13 @@ export default function Home() {
                     <div className="flex gap-4">
                         <LoginButton />
                         {session?.user && (
-                            <Button
-                                className="bg-amber-500 hover:bg-amber-600 text-slate-900"
-                                onClick={() => {
-                                    const target = document.getElementById("qr-code-form");
-                                    target?.scrollIntoView({ behavior: "smooth" });
-                                }}
-                            >
-                                Get Started
-                            </Button>
+                            <Link href="/subscription">
+                                <Button
+                                    className="bg-amber-500 hover:bg-amber-600 text-slate-900"
+                                >
+                                    Upgrade
+                                </Button>
+                            </Link>
                         )}
                     </div>
                 </div>
@@ -382,7 +429,8 @@ export default function Home() {
 
                 {/* Create Section */}
                 <AuthCheck>
-                    <div className="max-w-3xl mx-auto">
+                    <div className="max-w-3xl mx-auto space-y-6">
+                        <SubscriptionStatus />
                         <Card className="bg-slate-900/50 border-slate-800">
                             <CardContent id="qr-code-form" className="p-8 flex flex-col items-center">
                                 {error && <div className="text-red-500 mb-4">{error}</div>}
@@ -434,15 +482,57 @@ export default function Home() {
                                         Be specific about the style, colors, and artistic elements you
                                         want in your QR code
                                     </p>
-                                    <div
-                                        className="w-full border-dashed border-2 border-slate-700 rounded-lg p-4 mb-6 cursor-pointer"
-                                        onClick={() => document.getElementById('image')?.click()}
-                                    >
-                                        <div className="flex items-center justify-center">
-                                            <span className={`text-slate-400 ${fileName ? 'text-amber-500' : ''}`}>
-                                                {fileName || "Upload QR Code"}
-                                            </span>
+                                    <div className="flex gap-4 mb-6">
+                                        <div
+                                            className="flex-1 border-dashed border-2 border-slate-700 rounded-lg p-4 cursor-pointer hover:bg-slate-800/50 transition-colors"
+                                            onClick={() => document.getElementById('image')?.click()}
+                                        >
+                                            <div className="flex items-center justify-center gap-4">
+                                                {qrPreviewUrl ? (
+                                                    <>
+                                                        <div className="relative w-16 h-16">
+                                                            <Image
+                                                                src={qrPreviewUrl}
+                                                                alt="Generated QR Code"
+                                                                fill
+                                                                className="object-contain"
+                                                            />
+                                                        </div>
+                                                        <span className="text-amber-500">
+                                                            {generatedQrFile ? 'Generated' : 'Uploaded'} QR Code Ready
+                                                        </span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-slate-400 hover:text-red-500"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (qrPreviewUrl) {
+                                                                    URL.revokeObjectURL(qrPreviewUrl);
+                                                                }
+                                                                setQrPreviewUrl(null);
+                                                                setGeneratedQrFile(null);
+                                                                const input = document.getElementById('image') as HTMLInputElement;
+                                                                if (input) {
+                                                                    input.value = '';
+                                                                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                                                                }
+                                                            }}
+                                                        >
+                                                            Clear
+                                                        </Button>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-slate-400">
+                                                        {fileName || "Upload QR Code"}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
+                                        <QRCodeModal 
+                                            onGenerate={handleQRCodeGenerated}
+                                            hasGeneratedQR={qrPreviewUrl !== null}
+                                        />
                                     </div>
                                     <input type="file" id="image" className="hidden" onChange={handleFileChange} />
 

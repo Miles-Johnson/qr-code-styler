@@ -1,21 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { QRCodeModal } from './QRCodeModal';
 
 export function ImageUploadForm() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const { toast } = useToast();
   const [refreshGallery, setRefreshGallery] = useState(0);
+  const [qrCodeFile, setQrCodeFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleQRCodeGenerate = (file: File) => {
+    setQrCodeFile(file);
+    if (fileInputRef.current) {
+      // Clear the file input
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const file = formData.get('file') as File;
+    const file = qrCodeFile || (formData.get('file') as File);
     const prompt = formData.get('prompt') as string;
 
     // Validate file
@@ -53,9 +64,13 @@ export function ImageUploadForm() {
       setGeneratedImage(null);
 
       // Create prediction
+      const formDataToSend = new FormData();
+      formDataToSend.append('file', file);
+      formDataToSend.append('prompt', prompt);
+
       const response = await fetch('/api/predictions', {
         method: 'POST',
-        body: formData,
+        body: formDataToSend,
       });
 
       if (!response.ok) {
@@ -103,13 +118,34 @@ export function ImageUploadForm() {
     <div className="space-y-8">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <Input
+          <input
+            ref={fileInputRef}
             type="file"
             name="file"
             accept="image/jpeg,image/png,image/webp"
             disabled={isGenerating}
-            className="cursor-pointer"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setQrCodeFile(file);
+              }
+            }}
           />
+          <div
+            className={`flex items-center justify-center w-full border-dashed border-2 ${
+              qrCodeFile ? 'border-amber-500' : 'border-slate-700'
+            } rounded-lg p-4 cursor-pointer hover:bg-slate-800/50 transition-colors`}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {qrCodeFile ? (
+              <div className="flex items-center gap-2">
+                <span className="text-amber-500">QR Code ready for styling</span>
+              </div>
+            ) : (
+              <span className="text-slate-400">Upload QR Code</span>
+            )}
+          </div>
         </div>
         <div>
           <Input
@@ -134,6 +170,10 @@ export function ImageUploadForm() {
           />
         </div>
       )}
+
+      <div className="flex justify-center">
+        <QRCodeModal onGenerate={handleQRCodeGenerate} />
+      </div>
     </div>
   );
 }

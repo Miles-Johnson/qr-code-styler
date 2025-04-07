@@ -1,63 +1,64 @@
-# Product Context
+# QR Styler Product Overview
 
-## Purpose
-QR Styler is a web application that transforms standard QR codes into visually appealing designs using AI while maintaining functionality. It helps businesses and individuals create QR codes that align with their brand identity.
-
-## Core Features
-
-### QR Code Generation
-- AI-powered style transformation
-- Brand-aligned design options
-- Maintained scannability
-- Real-time preview
-
-### User Management
-- Google OAuth authentication
-- Personal image gallery
-- Secure data storage
-- Session persistence
-
-### Image Gallery
-- User-specific collections
-- Real-time updates
-- Responsive layout
-- Error recovery
-
-## User Experience
-- Clean, modern interface
-- Intuitive navigation
-- Real-time feedback
-- Mobile-responsive design
+## Core Product
+QR Styler is a web application that transforms ordinary QR codes into visually appealing, brand-aligned designs using AI technology while maintaining perfect scannability.
 
 ## Target Users
-- Businesses needing branded QR codes
-- Marketers and designers
-- Individual creators
-- Brand managers
+- Businesses looking to enhance their brand presence through QR codes
+- Marketing professionals needing branded QR codes
+- Designers wanting to create aesthetically pleasing QR codes
+- Individual users wanting unique, stylized QR codes
 
-## Value Proposition
-1. Create unique, branded QR codes
-2. Maintain professional appearance
-3. Easy to use interface
-4. Secure image storage
-5. Instant access to generated codes
+## Key Features
+1. AI-powered QR code styling
+2. Brand-matching capabilities
+3. Perfect scannability maintenance
+4. Multiple export formats
+5. Gallery management
+6. Customization options
 
-## Recent Improvements
-1. Simplified gallery interface
-2. Faster image loading
-3. Better error handling
-4. Streamlined user flow
-5. Enhanced documentation
+## Subscription Model
 
-## Future Roadmap
-1. Advanced styling options
-2. Bulk operations
-3. Analytics integration
-4. Enhanced caching
-5. Performance optimization
+### Free Tier ($0/month)
+- 10 images per month
+- 512x512 max resolution
+- Standard GPU processing
+- Standard queue priority
+- Basic QR integration
 
-## Known Limitations
-1. No pagination for large galleries
-2. Basic image caching
-3. Limited style customization
-4. Security updates needed
+### Basic Tier ($9.99/month)
+- 50 images per month
+- 1024x1024 max resolution
+- Enhanced GPU processing
+- Priority queue
+- 5 premium templates
+- Multiple export formats
+- Basic analytics
+- Email support
+- Price ID: price_1R0IC5FQBFx9IphFjKf7UL5b
+
+### Premium Tier ($19.99/month)
+- 200 images per month
+- 2048x2048 max resolution
+- Advanced GPU processing
+- Highest priority queue
+- Advanced QR customization
+- Batch processing
+- Comprehensive analytics
+- API access
+- Priority support
+- Price ID: price_1R0ICzFQBFx9IphFYbQMTegf
+
+## Technical Infrastructure
+- Next.js web application
+- Stripe integration for payments
+- PostgreSQL database (Neon)
+- NextAuth for authentication
+- Replicate for AI processing
+
+## Monetization Strategy
+1. Subscription-based model with tiered pricing
+2. Feature differentiation between tiers
+3. Usage-based limits (monthly generation counts)
+4. Quality-based limits (resolution, processing priority)
+5. Support-based differentiation

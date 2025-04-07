@@ -1,59 +1,105 @@
-# System Patterns
+# System Architecture Patterns
 
-## Architecture
+## Authentication Flow
+1. User clicks "Sign in" button
+2. Dialog opens with options:
+   - Continue with Google
+   - Email/Password sign in
+3. Google OAuth flow:
+   - Redirect to Google sign-in
+   - User authenticates
+   - Return to application
+4. Session management via NextAuth
+5. Protected routes require authentication
 
-### Frontend
-- Next.js 13 App Router
-- React Server Components
-- Client Components for interactive features
-- TailwindCSS for styling
-- shadcn/ui for UI components
+## Subscription System
 
-### Backend
-- Next.js API Routes
-- Drizzle ORM for database operations
-- Neon PostgreSQL for data storage
-- Vercel Blob for image storage
-- Replicate API for AI image generation
+### Tier Management
+- Free tier default for new users
+- Subscription status stored in user record
+- Monthly usage limits tracked per user
+- Reset counters monthly
 
-## Key Patterns
+### Stripe Integration
+1. Subscription Plans:
+   - Basic: price_1R0IC5FQBFx9IphFjKf7UL5b ($9.99/month)
+   - Premium: price_1R0ICzFQBFx9IphFYbQMTegf ($19.99/month)
+2. Checkout Flow:
+   - User selects plan
+   - Redirect to Stripe Checkout
+   - Handle success/cancel returns
+3. Webhook Handling:
+   - Process subscription events
+   - Update user subscription status
+   - Track payment history
 
-### Authentication
-- NextAuth.js for authentication
-- Google OAuth provider
-- Session-based auth with JWT
+### Feature Access Control
+1. Middleware checks:
+   - User authentication
+   - Subscription status
+   - Usage limits
+2. Feature gates:
+   - Resolution limits
+   - Monthly generation quotas
+   - Queue priority
+   - Advanced features
 
-### Data Flow
-1. Client-side form submission
-2. Server-side API processing
-3. AI image generation via Replicate
-4. Image storage in Vercel Blob
-5. Metadata storage in Neon PostgreSQL
+## Database Schema
+1. Users Table:
+   - Authentication info
+   - Subscription tier
+   - Usage tracking
+   - Stripe customer ID
+2. Generated Images:
+   - User reference
+   - Image metadata
+   - Generation parameters
+3. Subscription Plans:
+   - Tier details
+   - Price information
+   - Feature limits
+4. Payments:
+   - Transaction history
+   - Subscription links
+   - Payment status
 
-### Image Gallery
-- Simple fetch and display pattern
-- No pagination (fetch all images)
-- Auto-refresh on new image generation
-- Lazy loading for performance
-- Error handling with toast notifications
+## API Structure
+1. Authentication:
+   - NextAuth routes
+   - Session management
+2. Subscription:
+   - Plan management
+   - Usage tracking
+   - Payment processing
+3. Image Generation:
+   - QR code creation
+   - Style application
+   - Result storage
 
-### Database Schema
-- Users table with OAuth data
-- Generated images table with:
-  - User reference
-  - Image URL (Vercel Blob)
-  - Metadata (prompt, dimensions)
-  - Timestamps
+## Frontend Components
+1. Authentication:
+   - Login dialog
+   - OAuth buttons
+   - Session display
+2. Subscription:
+   - Plan comparison
+   - Feature lists
+   - Payment UI
+3. Image Management:
+   - Upload interface
+   - Gallery view
+   - Style controls
 
-### Error Handling
-- Toast notifications for user feedback
-- Fallback UI states
-- Graceful error recovery
-- Debug logging in development
-
-## Development Practices
-- TypeScript for type safety
-- Client/Server component separation
-- Memory Bank documentation
-- Feature-based commits
-- Environment-based configuration
+## Error Handling
+1. Authentication:
+   - Invalid credentials
+   - OAuth failures
+   - Session expiry
+2. Subscription:
+   - Payment failures
+   - Limit exceeded
+   - Feature access denied
+3. Generation:
+   - Processing errors
+   - Invalid inputs
+   - Resource limits

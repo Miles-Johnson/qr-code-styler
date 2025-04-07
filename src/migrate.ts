@@ -26,6 +26,47 @@ const checkTable = async (tableName: string) => {
   return result[0]?.exists;
 };
 
+const backupUsers = async () => {
+  try {
+    const users = await sql`SELECT * FROM "users"`;
+    console.log(`Backed up ${users.length} users`);
+    return users;
+  } catch (error) {
+    console.log('No existing users to backup or error:', error);
+    return [];
+  }
+};
+
+const restoreUsers = async (users: any[]) => {
+  if (!users.length) {
+    console.log('No users to restore');
+    return;
+  }
+
+  console.log(`Attempting to restore ${users.length} users`);
+  for (const user of users) {
+    try {
+      await sql`
+        INSERT INTO "users" (
+          "id", "email", "name", "hashed_password", "role", "email_verified",
+          "last_login", "created_at", "subscription_tier", "subscription_expires_at",
+          "monthly_generation_count", "monthly_generation_reset", "stripe_customer_id"
+        ) VALUES (
+          ${user.id}, ${user.email}, ${user.name}, ${user.hashed_password}, ${user.role},
+          ${user.email_verified}, ${user.last_login}, ${user.created_at},
+          ${user.subscription_tier}, ${user.subscription_expires_at},
+          ${user.monthly_generation_count}, ${user.monthly_generation_reset},
+          ${user.stripe_customer_id}
+        )
+        ON CONFLICT (id) DO NOTHING
+      `;
+    } catch (error) {
+      console.error('Error restoring user:', user.email, error);
+    }
+  }
+  console.log('User restoration completed');
+};
+
 const main = async () => {
   try {
     console.log('Starting migration process...');
@@ -39,6 +80,10 @@ const main = async () => {
       users: hasUsersBefore ? 'exists' : 'not found',
       generated_images: hasImagesBefore ? 'exists' : 'not found'
     });
+
+    // Backup existing users
+    console.log('Backing up existing users...');
+    const existingUsers = await backupUsers();
 
     // Check database permissions
     console.log('Checking database permissions...');
@@ -64,10 +109,19 @@ const main = async () => {
           "role" text DEFAULT 'user' NOT NULL,
           "email_verified" boolean DEFAULT false NOT NULL,
           "last_login" timestamp,
-          "created_at" timestamp DEFAULT now()
+          "created_at" timestamp DEFAULT now(),
+          "subscription_tier" text DEFAULT 'free' NOT NULL,
+          "subscription_expires_at" timestamp,
+          "monthly_generation_count" integer DEFAULT 0 NOT NULL,
+          "monthly_generation_reset" timestamp DEFAULT now(),
+          "stripe_customer_id" text
         )
       `;
       console.log('Users table created');
+
+      // Restore users
+      console.log('Restoring users...');
+      await restoreUsers(existingUsers);
 
       // Create generated_images table
       console.log('Creating generated_images table...');
@@ -77,7 +131,7 @@ const main = async () => {
           "user_id" uuid NOT NULL REFERENCES "users"("id"),
           "image_url" text NOT NULL,
           "prompt" text NOT NULL,
-          "original_qr_url" text NOT NULL,
+          "original_qr_url" text,
           "created_at" timestamp DEFAULT now(),
           "prediction_id" text NOT NULL,
           "width" integer NOT NULL,
