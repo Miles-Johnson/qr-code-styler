@@ -50,6 +50,9 @@ async function handlePrediction(req: NextRequest) {
 
     // Parse FormData
     const formData = await req.formData();
+    // --- DEBUGGING ---
+    console.log('[handlePrediction] FormData keys found:', Array.from(formData.keys()));
+    // --- END DEBUGGING ---
     const prompt = formData.get('prompt') as string || "default prompt...";
     const file = formData.get('file') as File | null;
 
