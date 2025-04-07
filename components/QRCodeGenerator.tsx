@@ -5,6 +5,8 @@ import { QRCodeCanvas } from 'qrcode.react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
+const QR_MARGIN_SIZE = 4; // Standard QR code margin
+
 interface QRCodeGeneratorProps {
   onGenerate: (file: File) => void;
   onClose: () => void;
@@ -22,7 +24,7 @@ export function QRCodeGenerator({ onGenerate, onClose }: QRCodeGeneratorProps) {
 
     canvas.toBlob((blob) => {
       if (!blob) return;
-      
+
       const file = new File([blob], 'qr-code.png', { type: 'image/png' });
       onGenerate(file);
       onClose();
@@ -46,11 +48,11 @@ export function QRCodeGenerator({ onGenerate, onClose }: QRCodeGeneratorProps) {
       />
       <div ref={canvasRef} className="flex justify-center">
         {qrValue && (
-          <QRCodeCanvas value={qrValue} size={256} bgColor="#FFFFFF" fgColor="#000000" />
+          <QRCodeCanvas value={qrValue} size={256} bgColor="#FFFFFF" fgColor="#000000" marginSize={QR_MARGIN_SIZE} />
         )}
       </div>
       {qrValue && (
-        <Button 
+        <Button
           onClick={handleGenerate}
           className="bg-amber-500 hover:bg-amber-600 text-slate-900"
         >
