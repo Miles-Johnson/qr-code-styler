@@ -28,26 +28,34 @@ async function handlePrediction(req: NextRequest) {
       }, { status: 500 });
     }
 
-    const data = await req.json();
-    const formData = new FormData();
-    formData.append("prompt", data.prompt || "default prompt...");
-    if (data.image) {
-      formData.append("image", data.image);
+    // Parse FormData instead of JSON
+    const formData = await req.formData();
+    const prompt = formData.get('prompt') as string || "default prompt...";
+    const file = formData.get('file') as File | null;
+
+    if (!file) {
+      return NextResponse.json({ detail: "No file provided in FormData" }, { status: 400 });
     }
+
+    // Read limits from headers set by middleware
+    const maxWidth = parseInt(req.headers.get('X-Max-Width') || '512', 10);
+    const maxHeight = parseInt(req.headers.get('X-Max-Height') || '512', 10);
+    const queuePriority = parseInt(req.headers.get('X-Queue-Priority') || '0', 10);
+
+    // Convert file to base64 data URI for Replicate
+    const fileBuffer = await file.arrayBuffer();
+    const base64Image = Buffer.from(fileBuffer).toString('base64');
+    const dataUri = `data:${file.type};base64,${base64Image}`;
 
     const input: any = {
-      seed: -1,
-      prompt: data.prompt || "default prompt...",
+      seed: -1, // Or generate a random seed if desired
+      prompt: prompt, // Use prompt from FormData
       output_format: "png",
-      negative_prompt: "blurry, horror, nsfw",
-      width: data.maxWidth,
-      height: data.maxHeight
+      negative_prompt: "blurry, horror, nsfw", // Consider making this configurable
+      width: maxWidth, // Use width from header
+      height: maxHeight, // Use height from header
+      image: dataUri // Use base64 image data
     };
-
-    // Handle image conversion for Replicate if image exists
-    if (data.image) {
-      input.image = data.image;
-    }
 
     console.log("Sending to Replicate with input:", {
       ...input,
@@ -56,9 +64,9 @@ async function handlePrediction(req: NextRequest) {
 
     // Create prediction with queue priority
     const options: any = {
-      version: "d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb",
+      version: "d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb", // Consider moving version to env var
       input,
-      priority: data.queuePriority || 0,
+      priority: queuePriority, // Use priority from header
     };
 
     // Add webhook configuration if available
