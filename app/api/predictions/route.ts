@@ -38,23 +38,15 @@ async function handlePrediction(req: NextRequest) {
     }
     const userId = session.user.id;
 
-    // --- DEBUGGING ---
-    console.log('[handlePrediction] Received request. Headers:', Object.fromEntries(req.headers.entries()));
-    // Attempt to log content-type specifically
-    console.log('[handlePrediction] Content-Type Header:', req.headers.get('content-type'));
-    // --- END DEBUGGING ---
-
     // Fetch subscription limits directly in the handler
     const subscription = await getUserSubscription(userId);
     const { maxWidth, maxHeight, queuePriority } = subscription.limits;
 
     // Parse FormData
     const formData = await req.formData();
-    // --- DEBUGGING ---
-    console.log('[handlePrediction] FormData keys found:', Array.from(formData.keys()));
-    // --- END DEBUGGING ---
     const prompt = formData.get('prompt') as string || "default prompt...";
-    const file = formData.get('file') as File | null;
+    // Use 'image' key based on debugging logs
+    const file = formData.get('image') as File | null;
 
     if (!file) {
       return NextResponse.json({ detail: "No file provided in FormData" }, { status: 400 });
