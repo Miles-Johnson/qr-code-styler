@@ -50,12 +50,15 @@ export async function subscriptionMiddleware(
     }
 
     // Pass the original request with modified headers to the handler
-    const response = await handler(new NextRequest(req.url, {
-      headers: requestHeaders, // Use headers with explicit Content-Type
-      method: req.method,
-      body: req.body // Pass original body (FormData)
-      // duplex: 'half' // Removed due to TS error, likely not needed for FormData
-    }));
+    const response = await handler(
+      // @ts-ignore - duplex: 'half' is required by runtime when passing body
+      new NextRequest(req.url, {
+        headers: requestHeaders, // Use headers with explicit Content-Type
+        method: req.method,
+        body: req.body, // Pass original body (FormData)
+        duplex: 'half' // Re-added as required by runtime
+      })
+    );
 
     // If successful, increment the generation count
     if (response.status === 200 || response.status === 201) {
