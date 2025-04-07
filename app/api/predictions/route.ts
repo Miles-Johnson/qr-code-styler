@@ -76,7 +76,7 @@ async function handlePrediction(req: NextRequest) {
     const options: any = {
       version: "d9243e828737bd0ce73e8cb95f81cead59dead23a303445e676147f02d6121cb", // Consider moving version to env var
       input,
-      priority: queuePriority, // Use priority fetched directly
+      // priority: queuePriority, // Removed: Model does not support this parameter
     };
 
     // Add webhook configuration if available
