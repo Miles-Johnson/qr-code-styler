@@ -64,8 +64,9 @@ export async function subscriptionMiddleware(
     
   } catch (error) {
     console.error('Subscription middleware error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown subscription processing error';
     return NextResponse.json(
-      { error: 'Server error processing subscription' },
+      { error: `Subscription Middleware Error: ${errorMessage}` }, // Specific error
       { status: 500 }
     );
   }
