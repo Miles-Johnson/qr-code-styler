@@ -33,9 +33,16 @@ async function handlePrediction(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       // This should technically be caught by middleware, but double-check
+      // This should technically be caught by middleware, but double-check
       return NextResponse.json({ detail: "Authentication required" }, { status: 401 });
     }
     const userId = session.user.id;
+
+    // --- DEBUGGING ---
+    console.log('[handlePrediction] Received request. Headers:', Object.fromEntries(req.headers.entries()));
+    // Attempt to log content-type specifically
+    console.log('[handlePrediction] Content-Type Header:', req.headers.get('content-type'));
+    // --- END DEBUGGING ---
 
     // Fetch subscription limits directly in the handler
     const subscription = await getUserSubscription(userId);
