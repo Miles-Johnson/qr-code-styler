@@ -11,9 +11,10 @@ export function ImageUploadForm() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const { toast } = useToast();
-  const [refreshGallery, setRefreshGallery] = useState(0);
+  const [refreshGallery, setRefreshGallery] = useState(0); // Consider if this state is still needed
   const [qrCodeFile, setQrCodeFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const promptInputRef = useRef<HTMLInputElement>(null); // Add ref for prompt input
 
   const handleQRCodeGenerate = (file: File) => {
     setQrCodeFile(file);
@@ -25,9 +26,10 @@ export function ImageUploadForm() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const file = qrCodeFile || (formData.get('file') as File);
-    const prompt = formData.get('prompt') as string;
+    // Use qrCodeFile state directly
+    const file = qrCodeFile;
+    // Get prompt from ref
+    const prompt = promptInputRef.current?.value || '';
 
     // Validate file
     if (!file) {
@@ -149,13 +151,14 @@ export function ImageUploadForm() {
         </div>
         <div>
           <Input
+            ref={promptInputRef} // Attach ref
             type="text"
-            name="prompt"
+            name="prompt" // Keep name for accessibility/semantics if needed
             placeholder="Enter a prompt for the image generation..."
             disabled={isGenerating}
           />
         </div>
-        <Button type="submit" disabled={isGenerating}>
+        <Button type="submit" disabled={isGenerating || !qrCodeFile}> {/* Disable if no file */}
           {isGenerating ? 'Generating...' : 'Generate Image'}
         </Button>
       </form>
