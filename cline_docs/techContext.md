@@ -17,13 +17,13 @@
 
 ## API Integrations
 1. Stripe
-   - Secret Key: sk_test_51OUHMUFQBFx9IphFjoRzls7Dcuy0tRyqeWgHzZiZTRLfdBLIWpRIrsQEKPHZ3MoXUZH9OI7yLUuB0XsgXIMBDceW00YgIONQcz
+   - Secret Key: [REDACTED]
    - Basic Plan ID: price_1R0IC5FQBFx9IphFjKf7UL5b
    - Premium Plan ID: price_1R0ICzFQBFx9IphFYbQMTegf
-   - Webhook Secret: whsec_HzC29kRon3YyhbDj45COKn8Pm6jpGLfx
+   - Webhook Secret: [REDACTED]
 
 2. Google OAuth
-   - Client ID: 495423385211-ecdg8km075us77rprrose4di334u4cd9.apps.googleusercontent.com
+   - Client ID: [REDACTED]
    - Redirect URI: http://localhost:3000/api/auth/callback/google
 
 3. Replicate
