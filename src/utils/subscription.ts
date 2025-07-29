@@ -75,6 +75,20 @@ export async function getUserSubscription(userId: string) {
 
 // Check if user can generate an image
 export async function canGenerateImage(userId: string) {
+  const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user || user.length === 0) {
+    throw new Error('User not found');
+  }
+
+  // Special bypass for specific email for testing purposes
+  if (user[0].email === 'bluehaakonjohnson@gmail.com') {
+    return {
+      canGenerate: true,
+      reason: 'Bypass for testing email',
+      remaining: Infinity
+    };
+  }
+
   const subscription = await getUserSubscription(userId);
   
   // Check if subscription is expired
