@@ -11,6 +11,8 @@ export const metadata: Metadata = {
   description: 'Transform your QR codes into stunning works of art',
 };
 
+// Trivial change to trigger Vercel deployment
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
