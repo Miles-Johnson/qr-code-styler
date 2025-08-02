@@ -24,6 +24,7 @@
 -   ✅ AI styling integration
 -   ✅ Image gallery
 -   ✅ Basic user management
+-   ✅ **Advanced QR Code Generator**: Implemented a responsive two-panel layout with a scrollable controls panel and a fixed QR code display area. Fixed initial rendering issues and integrated with Valtio for state management.
 
 ## Future Development & Enhancements
 
