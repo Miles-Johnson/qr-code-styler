@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { QRCodeGenerator } from './QRCodeGenerator';
+import { AdvancedQrGenerator } from './AdvancedQrGenerator';
 
 interface QRCodeModalProps {
   onGenerate: (file: File) => void;
@@ -18,10 +18,18 @@ interface QRCodeModalProps {
 
 export function QRCodeModal({ onGenerate, hasGeneratedQR = false }: QRCodeModalProps) {
   const [open, setOpen] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const handleGenerate = (file: File) => {
-    onGenerate(file);
-    setOpen(false);
+  const handleGenerate = () => {
+    if (canvasRef.current) {
+      canvasRef.current.toBlob((blob) => {
+        if (blob) {
+          const file = new File([blob], 'qrcode.png', { type: 'image/png' });
+          onGenerate(file);
+          setOpen(false);
+        }
+      });
+    }
   };
 
   return (
@@ -35,15 +43,15 @@ export function QRCodeModal({ onGenerate, hasGeneratedQR = false }: QRCodeModalP
           {hasGeneratedQR ? 'Replace QR Code' : 'Create QR Code'}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[80rem]">
         <DialogHeader>
           <DialogTitle>Create QR Code</DialogTitle>
         </DialogHeader>
         <div className="flex items-center justify-center py-4">
-          <QRCodeGenerator 
-            onGenerate={handleGenerate}
-            onClose={() => setOpen(false)}
-          />
+          <AdvancedQrGenerator />
+        </div>
+        <div className="flex justify-end">
+          <Button onClick={handleGenerate}>Generate</Button>
         </div>
       </DialogContent>
     </Dialog>

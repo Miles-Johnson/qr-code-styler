@@ -27,6 +27,11 @@
 
 ## Future Development & Enhancements
 
+### Roadmap
+- [x] **Phase 1: Integrating the Advanced QR Code Generator**
+- [ ] **Phase 2: Integrating the "Compare" & Refinement Tool**
+- [ ] **Phase 3: Integrating the "Verify" Scanner**
+
 ### Subscription Enhancements
 -   ⏳ Subscription cancellation flow
 -   ⏳ Plan upgrade/downgrade handling
