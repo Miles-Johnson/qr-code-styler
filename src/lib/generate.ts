@@ -78,7 +78,7 @@ export async function generateQRCode(outCanvas: HTMLCanvasElement, state: QRCode
   function getBorderOpacity(x: number, y: number) {
     if (typeof state.marginNoiseOpacity === 'number')
       return state.marginNoiseOpacity
-    const [min, max] = state.marginNoiseOpacity
+    const [min, max] = [state.marginNoiseOpacity, state.marginNoiseOpacity]
     return rand(x, y, 'border-op') * (max - min) + min
   }
 

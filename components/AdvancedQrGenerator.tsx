@@ -5,17 +5,12 @@ import { useSnapshot } from 'valtio'
 import { generateQRCode } from '../src/lib/generate'
 import { generatorState } from '../src/lib/store'
 import { PixelStyleIcons, PixelStyles } from '../src/lib/types'
-import { OptionItem } from './OptionItem'
 import { OptionSelectGroup } from './OptionSelectGroup'
 import { OptionCheckbox } from './OptionCheckbox'
-import { SettingsMarkerStyle } from './SettingsMarkerStyle'
-import { SettingsMargin } from './SettingsMargin'
 import { MarkerSubShapeIcons, MarkerSubShapes } from '../src/lib/types'
-import { SettingsRandomRange } from './SettingsRandomRange'
 import { OptionSlider } from './OptionSlider'
 import { OptionColor } from './OptionColor'
 import { ImageUpload } from './ImageUpload'
-import { ScrollArea } from '../components/ui/scroll-area'
 
 export const AdvancedQrGenerator = forwardRef((props, ref) => {
   const canvas = useRef<HTMLCanvasElement>(null)
@@ -31,146 +26,141 @@ export const AdvancedQrGenerator = forwardRef((props, ref) => {
   return (
     <div className="h-screen w-full bg-gray-50 flex flex-col">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0">
-        <h1 className="text-xl font-semibold">QR Code Generator</h1>
+      <div className="bg-white border-b border-gray-200 px-4 py-2 flex-shrink-0">
+        <h1 className="text-lg font-semibold">QR Code Generator</h1>
       </div>
       
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Controls Panel - Scrollable */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-          <ScrollArea className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Controls Panel - More compact */}
+        <div className="w-72 bg-white border-r border-gray-200 flex flex-col">
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
             {/* Text Input */}
             <div>
-              <label className="block text-sm font-medium mb-2">Text to encode:</label>
+              <label className="block text-xs font-medium mb-1">Text to encode:</label>
               <textarea
                 value={state.text}
                 onChange={e => (generatorState.text = e.target.value)}
                 placeholder="Enter text or URL"
-                className="w-full p-2 border border-gray-300 rounded-lg resize-none"
-                rows={3}
+                className="w-full p-2 border border-gray-300 rounded text-sm resize-none"
+                rows={2}
               />
             </div>
 
             {/* Error Correction */}
-            <OptionItem title="Error Correction" div>
-              <OptionSelectGroup
-                value={state.ecc}
-                onChange={v => (generatorState.ecc = v as 'L' | 'M' | 'Q' | 'H')}
-                options={['L', 'M', 'Q', 'H']}
-              />
-              <label className="flex items-center gap-2 ml-2">
-                <OptionCheckbox
-                  value={state.boostECC}
-                  onChange={v => (generatorState.boostECC = v)}
+            <div>
+              <label className="block text-xs font-medium mb-1">Error Correction</label>
+              <div className="flex items-center gap-2">
+                <OptionSelectGroup
+                  value={state.ecc}
+                  onChange={v => (generatorState.ecc = v as 'L' | 'M' | 'Q' | 'H')}
+                  options={['L', 'M', 'Q', 'H']}
                 />
-                <span className="text-sm opacity-75">Boost ECC</span>
-              </label>
-            </OptionItem>
+                <label className="flex items-center gap-1 text-xs">
+                  <OptionCheckbox
+                    value={state.boostECC}
+                    onChange={v => (generatorState.boostECC = v)}
+                  />
+                  Boost ECC
+                </label>
+              </div>
+            </div>
 
             {/* Mask Pattern */}
-            <OptionItem title="Mask Pattern">
+            <div>
+              <label className="block text-xs font-medium mb-1">Mask Pattern</label>
               <OptionSelectGroup
                 value={state.maskPattern}
                 onChange={v => (generatorState.maskPattern = v as number)}
                 options={[-1, 0, 1, 2, 3, 4, 5, 6, 7]}
                 titles={['Auto', '0', '1', '2', '3', '4', '5', '6', '7']}
               />
-            </OptionItem>
+            </div>
 
             {/* Rotate */}
-            <OptionItem title="Rotate" div>
+            <div>
+              <label className="block text-xs font-medium mb-1">Rotate</label>
               <OptionSelectGroup
                 value={state.rotate}
                 onChange={v => (generatorState.rotate = v as 0 | 90 | 180 | 270)}
                 options={[0, 90, 180, 270]}
                 titles={['0°', '90°', '180°', '270°']}
               />
-            </OptionItem>
-
-            <div className="border-t border-gray-200 my-4" />
+            </div>
 
             {/* Pixel Style */}
-            <OptionItem title="Pixel Style">
+            <div>
+              <label className="block text-xs font-medium mb-1">Pixel Style</label>
               <OptionSelectGroup
                 value={state.pixelStyle}
                 onChange={v => (generatorState.pixelStyle = v as any)}
                 options={PixelStyles}
                 classes={PixelStyleIcons}
               />
-            </OptionItem>
+            </div>
 
             {/* Markers */}
-            <OptionItem title="Markers">
-              <div className="flex-auto" />
-              <button
-                className="text-xs p-1 border border-gray-200 rounded-lg"
-                onClick={() => {
-                  if (!generatorState.markers?.length) {
-                    generatorState.markers = [
-                      {
-                        markerShape: generatorState.markerShape,
-                        markerStyle: generatorState.markerStyle,
-                        markerInnerShape: generatorState.markerInnerShape,
-                      },
-                      {
-                        markerShape: generatorState.markerShape,
-                        markerStyle: generatorState.markerStyle,
-                        markerInnerShape: generatorState.markerInnerShape,
-                      },
-                    ]
-                  } else {
-                    generatorState.markers = []
-                  }
-                }}
-              >
-                {state.markers?.length ? 'Collapse' : 'Expand'}
-              </button>
-            </OptionItem>
-
-            {!state.markers?.length ? (
-              <SettingsMarkerStyle state={generatorState} nested />
-            ) : (
-              <>
-                <SettingsMarkerStyle state={generatorState} nested number="1" />
-                <OptionItem title="Marker 2"><></></OptionItem>
-                <SettingsMarkerStyle state={generatorState.markers?.[0]} nested />
-                <OptionItem title="Marker 3"><></></OptionItem>
-                <SettingsMarkerStyle state={generatorState.markers?.[1]} nested />
-                <div className="border-t border-gray-200 my-1" />
-              </>
-            )}
+            <div>
+              <label className="block text-xs font-medium mb-1">Markers</label>
+              <div className="space-y-2">
+                <div>
+                  <span className="text-xs text-gray-600">Shape:</span>
+                  <OptionSelectGroup
+                    value={state.markerShape}
+                    onChange={v => (generatorState.markerShape = v as any)}
+                    options={['square', 'rounded']}
+                  />
+                </div>
+                <div>
+                  <span className="text-xs text-gray-600">Inner:</span>
+                  <OptionSelectGroup
+                    value={state.markerInnerShape}
+                    onChange={v => (generatorState.markerInnerShape = v as any)}
+                    options={['square', 'circle', 'plus', 'diamond']}
+                  />
+                </div>
+              </div>
+            </div>
 
             {/* Sub Markers */}
-            <OptionItem title="Sub Markers">
+            <div>
+              <label className="block text-xs font-medium mb-1">Sub Markers</label>
               <OptionSelectGroup
                 value={state.markerSub}
                 onChange={v => (generatorState.markerSub = v as any)}
                 options={MarkerSubShapes}
                 classes={MarkerSubShapeIcons}
               />
-            </OptionItem>
-
-            <div className="border-t border-gray-200 my-4" />
+            </div>
 
             {/* Margin */}
-            <SettingsMargin
-              value={state.margin}
-              onChange={v => (generatorState.margin = v)}
-              fullCustomizable
-            />
+            <div>
+              <label className="block text-xs font-medium mb-1">Margin</label>
+              <OptionSlider
+                value={state.margin}
+                onChange={v => (generatorState.margin = v)}
+                min={0}
+                max={20}
+                step={1}
+              />
+            </div>
 
             {/* Margin Noise */}
-            <OptionItem title="Margin Noise" description="Add some random data points to the margin">
-              <OptionCheckbox
-                value={state.marginNoise}
-                onChange={v => (generatorState.marginNoise = v)}
-              />
-            </OptionItem>
+            <div>
+              <label className="block text-xs font-medium mb-1">Margin Noise</label>
+              <label className="flex items-center gap-1 text-xs">
+                <OptionCheckbox
+                  value={state.marginNoise}
+                  onChange={v => (generatorState.marginNoise = v)}
+                />
+                Add random data points
+              </label>
+            </div>
 
             {state.marginNoise && (
               <>
-                <OptionItem title="Noise Rate" nested description="Percentage of whether a black point should be placed">
+                <div>
+                  <label className="block text-xs font-medium mb-1">Noise Rate</label>
                   <OptionSlider
                     value={state.marginNoiseRate}
                     onChange={v => (generatorState.marginNoiseRate = v)}
@@ -178,103 +168,80 @@ export const AdvancedQrGenerator = forwardRef((props, ref) => {
                     max={1}
                     step={0.01}
                   />
-                </OptionItem>
+                </div>
 
-                <SettingsRandomRange
-                  value={state.marginNoiseOpacity as any}
-                  onChange={v => (generatorState.marginNoiseOpacity = v as any)}
-                  title="Opacity"
-                  nested
-                  min={0}
-                  max={1}
-                  step={0.01}
-                />
+                <div>
+                  <label className="block text-xs font-medium mb-1">Opacity</label>
+                  <OptionSlider
+                    value={state.marginNoiseOpacity as any}
+                    onChange={v => (generatorState.marginNoiseOpacity = v as any)}
+                    min={0}
+                    max={1}
+                    step={0.01}
+                  />
+                </div>
               </>
             )}
 
             {/* Safe Space */}
-            <OptionItem title="Safe Space">
+            <div>
+              <label className="block text-xs font-medium mb-1">Safe Space</label>
               <OptionSelectGroup
                 value={state.marginNoiseSpace}
                 onChange={v => (generatorState.marginNoiseSpace = v as any)}
                 options={['full', 'marker', 'minimal', 'extreme', 'none']}
               />
-            </OptionItem>
-
-            <div className="border-t border-gray-200 my-4" />
+            </div>
 
             {/* Render Type */}
-            <OptionItem title="Render Type">
+            <div>
+              <label className="block text-xs font-medium mb-1">Render Type</label>
               <OptionSelectGroup
                 value={state.renderPointsType}
                 onChange={v => (generatorState.renderPointsType = v as any)}
                 options={['all', 'function', 'data', 'guide', 'marker']}
               />
-            </OptionItem>
+            </div>
 
             {/* Seed */}
-            <OptionItem title="Seed">
-              <input
-                type="number"
-                value={state.seed}
-                onChange={e => (generatorState.seed = Number(e.target.value))}
-                className="w-24 p-2 border border-gray-200 rounded-lg"
-              />
-              <button
-                className="p-1 text-xs border border-gray-200 rounded-lg"
-                onClick={() => (generatorState.seed = Math.round(Math.random() * 100000))}
-              >
-                <div className="i-ri-refresh-line" />
-              </button>
-            </OptionItem>
+            <div>
+              <label className="block text-xs font-medium mb-1">Seed</label>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={state.seed}
+                  onChange={e => (generatorState.seed = Number(e.target.value))}
+                  className="flex-1 p-1 border border-gray-300 rounded text-sm"
+                />
+                <button
+                  className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50"
+                  onClick={() => (generatorState.seed = Math.round(Math.random() * 100000))}
+                >
+                  🔄
+                </button>
+              </div>
+            </div>
 
             {/* Background */}
-            <OptionItem title="Background" div>
-              {state.backgroundImage?.startsWith('#') ? (
-                <OptionColor
-                  value={state.backgroundImage}
-                  onChange={v => (generatorState.backgroundImage = v)}
-                />
-              ) : (
-                <button className="relative text-xs p-1 border border-gray-200 rounded-lg">
-                  {state.backgroundImage && (
-                    <img
-                      src={state.backgroundImage}
-                      className="absolute inset-0 z-0 w-full h-full rounded object-cover opacity-50"
-                      alt=""
-                    />
-                  )}
-                  <div className="z-1">📁 Upload</div>
-                  <ImageUpload onChange={v => (generatorState.backgroundImage = v)} />
-                </button>
-              )}
-              {state.backgroundImage && (
+            <div>
+              <label className="block text-xs font-medium mb-1">Background</label>
+              <div className="flex gap-2">
                 <button
-                  className="p-1 text-xs border border-gray-200 rounded-lg"
-                  onClick={() => (generatorState.backgroundImage = undefined)}
-                >
-                  <div className="i-carbon-close" />
-                </button>
-              )}
-              <div className="flex-auto" />
-              {!state.backgroundImage && (
-                <button
-                  className="p-1 text-xs border border-gray-200 rounded-lg"
+                  className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50"
                   onClick={() => (generatorState.backgroundImage = '#888888')}
                 >
-                  <div className="i-ri-paint-fill" />
+                  🎨 Color
                 </button>
-              )}
-            </OptionItem>
-
-            <div className="border-t border-gray-200 my-4" />
+                <button className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">
+                  📁 Upload
+                </button>
+              </div>
+            </div>
 
             {/* Colors */}
-            <OptionItem title="Colors" div onReset={() => {
-              generatorState.lightColor = '#ffffff'
-              generatorState.darkColor = '#000000'
-            }}>
-              <div className="flex gap-2">
+            <div>
+              <label className="block text-xs font-medium mb-1">Colors</label>
+              <div className="flex items-center gap-2">
                 <OptionColor
                   value={state.lightColor}
                   onChange={v => (generatorState.lightColor = v)}
@@ -283,41 +250,43 @@ export const AdvancedQrGenerator = forwardRef((props, ref) => {
                   value={state.darkColor}
                   onChange={v => (generatorState.darkColor = v)}
                 />
-                <label className="flex items-center gap-2 ml-2">
+                <label className="flex items-center gap-1 text-xs">
                   <OptionCheckbox
                     value={state.invert}
                     onChange={v => (generatorState.invert = v)}
                   />
-                  <span className="text-sm opacity-75">Invert</span>
+                  Invert
                 </label>
               </div>
-            </OptionItem>
-
-            <div className="border-t border-gray-200 my-4" />
+            </div>
 
             {/* Version Settings */}
-            <OptionItem title="Min Version">
-              <OptionSlider
-                value={state.minVersion}
-                onChange={v => (generatorState.minVersion = v)}
-                min={1}
-                max={state.maxVersion}
-                step={1}
-              />
-            </OptionItem>
-
-            <OptionItem title="Max Version">
-              <OptionSlider
-                value={state.maxVersion}
-                onChange={v => (generatorState.maxVersion = v)}
-                min={state.minVersion}
-                max={40}
-                step={1}
-              />
-            </OptionItem>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="block text-xs font-medium mb-1">Min Ver</label>
+                <OptionSlider
+                  value={state.minVersion}
+                  onChange={v => (generatorState.minVersion = v)}
+                  min={1}
+                  max={state.maxVersion}
+                  step={1}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium mb-1">Max Ver</label>
+                <OptionSlider
+                  value={state.maxVersion}
+                  onChange={v => (generatorState.maxVersion = v)}
+                  min={state.minVersion}
+                  max={40}
+                  step={1}
+                />
+              </div>
+            </div>
 
             {/* Pixel Size */}
-            <OptionItem title="Pixel Size">
+            <div>
+              <label className="block text-xs font-medium mb-1">Pixel Size</label>
               <OptionSlider
                 value={state.scale}
                 onChange={v => (generatorState.scale = v)}
@@ -326,21 +295,21 @@ export const AdvancedQrGenerator = forwardRef((props, ref) => {
                 step={1}
                 unit="px"
               />
-            </OptionItem>
-
-            <div className="border-t border-gray-200 my-4" />
+            </div>
 
             {/* Effect */}
-            <OptionItem title="Effect">
+            <div>
+              <label className="block text-xs font-medium mb-1">Effect</label>
               <OptionSelectGroup
                 value={state.effect}
                 onChange={v => (generatorState.effect = v as any)}
                 options={['none', 'crystalize', 'liquidify']}
               />
-            </OptionItem>
+            </div>
 
             {state.effect === 'crystalize' && (
-              <OptionItem title="Radius" nested>
+              <div>
+                <label className="block text-xs font-medium mb-1">Radius</label>
                 <OptionSlider
                   value={state.effectCrystalizeRadius}
                   onChange={v => (generatorState.effectCrystalizeRadius = v)}
@@ -348,12 +317,13 @@ export const AdvancedQrGenerator = forwardRef((props, ref) => {
                   max={20}
                   step={0.5}
                 />
-              </OptionItem>
+              </div>
             )}
             
             {state.effect === 'liquidify' && (
               <>
-                <OptionItem title="Distort Radius" nested>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Distort Radius</label>
                   <OptionSlider
                     value={state.effectLiquidifyDistortRadius}
                     onChange={v => (generatorState.effectLiquidifyDistortRadius = v)}
@@ -361,8 +331,9 @@ export const AdvancedQrGenerator = forwardRef((props, ref) => {
                     max={40}
                     step={1}
                   />
-                </OptionItem>
-                <OptionItem title="Blur Radius" nested>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Blur Radius</label>
                   <OptionSlider
                     value={state.effectLiquidifyRadius}
                     onChange={v => (generatorState.effectLiquidifyRadius = v)}
@@ -370,8 +341,9 @@ export const AdvancedQrGenerator = forwardRef((props, ref) => {
                     max={40}
                     step={1}
                   />
-                </OptionItem>
-                <OptionItem title="Threshold" nested onReset={() => (generatorState.effectLiquidifyThreshold = 128)}>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1">Threshold</label>
                   <OptionSlider
                     value={state.effectLiquidifyThreshold}
                     onChange={v => (generatorState.effectLiquidifyThreshold = v)}
@@ -380,38 +352,37 @@ export const AdvancedQrGenerator = forwardRef((props, ref) => {
                     step={1}
                     unit="/256"
                   />
-                </OptionItem>
+                </div>
               </>
             )}
 
             {state.effect !== 'none' && (
-              <OptionItem title="Effect Timing">
+              <div>
+                <label className="block text-xs font-medium mb-1">Effect Timing</label>
                 <OptionSelectGroup
                   value={state.effectTiming}
                   onChange={v => (generatorState.effectTiming = v as any)}
                   options={['before', 'after']}
                 />
-              </OptionItem>
+              </div>
             )}
-          </ScrollArea>
+          </div>
         </div>
 
-        {/* QR Code Display - Fixed */}
-        <div className="flex-1 flex flex-col items-center justify-center bg-gray-100 p-8">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-            <canvas 
-              ref={canvas} 
-              className="max-w-full max-h-full border border-gray-300 rounded"
-              style={{ maxWidth: '400px', maxHeight: '400px' }}
-            />
-            <div className="mt-4 text-center">
-              <div className="text-sm text-gray-600 mb-2">
-                Size: 300x300 | Version: 2 | Mask: 4
-              </div>
-              <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                📥 Download
-              </button>
+        {/* QR Code Display - More compact */}
+        <div className="flex-1 flex items-center justify-center bg-gray-100 p-4">
+          <canvas 
+            ref={canvas} 
+            className="border border-gray-300 rounded mb-3"
+            style={{ maxWidth: '400px', maxHeight: '400px' }}
+          />
+          <div className="text-center space-y-2">
+            <div className="text-xs text-gray-600">
+              Size: 300x300 | Version: 2 | Mask: 4
             </div>
+            <button className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors">
+              📥 Download
+            </button>
           </div>
         </div>
       </div>

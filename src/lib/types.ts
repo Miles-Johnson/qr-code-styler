@@ -94,7 +94,7 @@ export interface QrCodeGeneratorMarkerState {
 export interface QRCodeGeneratorState extends QrCodeGeneratorMarkerState {
   text: string
   ecc: 'L' | 'M' | 'Q' | 'H'
-  margin: number | MarginObject
+  margin: number
   scale: number
   seed: number
   lightColor: string
@@ -109,7 +109,7 @@ export interface QRCodeGeneratorState extends QrCodeGeneratorMarkerState {
   marginNoise: boolean
   marginNoiseRate: number
   marginNoiseSpace: 'none' | 'marker' | 'full' | 'minimal' | 'extreme'
-  marginNoiseOpacity: number | [number, number]
+  marginNoiseOpacity: number
   renderPointsType: 'all' | 'data' | 'function' | 'guide' | 'marker'
   invert: boolean
   rotate: 0 | 90 | 180 | 270
