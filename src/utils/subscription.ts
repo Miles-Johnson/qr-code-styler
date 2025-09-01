@@ -12,6 +12,8 @@ export const SUBSCRIPTION_TIERS = {
 export type SubscriptionTier = typeof SUBSCRIPTION_TIERS[keyof typeof SUBSCRIPTION_TIERS];
 
 // Define tier limits
+// Original limits (commented out for future reference):
+/*
 export const TIER_LIMITS = {
   [SUBSCRIPTION_TIERS.FREE]: {
     maxMonthlyGenerations: 10,
@@ -40,6 +42,51 @@ export const TIER_LIMITS = {
   },
   [SUBSCRIPTION_TIERS.PREMIUM]: {
     maxMonthlyGenerations: 200,
+    maxWidth: 2048,
+    maxHeight: 2048,
+    queuePriority: 2,
+    features: {
+      advancedGPU: true,
+      highestPriority: true,
+      advancedQRCustomization: true,
+      batchProcessing: true,
+      comprehensiveAnalytics: true,
+      apiAccess: true,
+      prioritySupport: true
+    }
+  }
+};
+*/
+
+// Updated limits with unlimited monthly generations
+export const TIER_LIMITS = {
+  [SUBSCRIPTION_TIERS.FREE]: {
+    maxMonthlyGenerations: Infinity,
+    maxWidth: 512,
+    maxHeight: 512,
+    queuePriority: 0,
+    features: {
+      standardGPU: true,
+      standardQueue: true,
+      basicQRIntegration: true
+    }
+  },
+  [SUBSCRIPTION_TIERS.BASIC]: {
+    maxMonthlyGenerations: Infinity,
+    maxWidth: 1024,
+    maxHeight: 1024,
+    queuePriority: 1,
+    features: {
+      enhancedGPU: true,
+      priorityQueue: true,
+      premiumTemplates: 5,
+      multipleExportFormats: true,
+      basicAnalytics: true,
+      emailSupport: true
+    }
+  },
+  [SUBSCRIPTION_TIERS.PREMIUM]: {
+    maxMonthlyGenerations: Infinity,
     maxWidth: 2048,
     maxHeight: 2048,
     queuePriority: 2,

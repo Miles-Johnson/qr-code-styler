@@ -99,6 +99,8 @@ export function SubscriptionStatus() {
         </div>
 
         <div className="space-y-4">
+          {/* Monthly generation display commented out - unlimited generations now */}
+          {/*
           <div>
             <div className="flex justify-between text-sm text-slate-400 mb-2">
               <span>Monthly Generations</span>
@@ -106,6 +108,7 @@ export function SubscriptionStatus() {
             </div>
             <Progress value={usagePercentage} className="h-2" />
           </div>
+          */}
 
           <div className="flex justify-between text-sm text-slate-400">
             <span>Max Resolution</span>
