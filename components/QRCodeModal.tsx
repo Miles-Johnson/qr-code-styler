@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
+import { useSnapshot } from 'valtio';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,35 +11,32 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { AdvancedQrGenerator } from './AdvancedQrGenerator';
+import { isModalOpen, dataUrlGeneratedQRCode } from '../src/lib/state';
 
 interface QRCodeModalProps {
-  onGenerate: (file: File) => void;
   hasGeneratedQR?: boolean;
 }
 
-export function QRCodeModal({ onGenerate, hasGeneratedQR = false }: QRCodeModalProps) {
-  const [open, setOpen] = useState(false);
+export function QRCodeModal({ hasGeneratedQR = false }: QRCodeModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const snap = useSnapshot(isModalOpen);
 
   const handleGenerate = () => {
     if (canvasRef.current) {
-      canvasRef.current.toBlob((blob) => {
-        if (blob) {
-          const file = new File([blob], 'qrcode.png', { type: 'image/png' });
-          onGenerate(file);
-          setOpen(false);
-        }
-      });
+      const dataUrl = canvasRef.current.toDataURL('image/png');
+      dataUrlGeneratedQRCode.value = dataUrl;
+      isModalOpen.value = false;
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={snap.value} onOpenChange={(value) => isModalOpen.value = value}>
       <DialogTrigger asChild>
         <Button 
           variant="outline" 
           size="sm"
           className={`${hasGeneratedQR ? 'text-slate-400 hover:text-amber-500' : ''}`}
+          onClick={() => isModalOpen.value = true}
         >
           {hasGeneratedQR ? 'Replace QR Code' : 'Create QR Code'}
         </Button>
@@ -48,10 +46,10 @@ export function QRCodeModal({ onGenerate, hasGeneratedQR = false }: QRCodeModalP
           <DialogTitle>Create QR Code</DialogTitle>
         </DialogHeader>
         <div className="flex items-center justify-center py-4">
-          <AdvancedQrGenerator />
+          <AdvancedQrGenerator ref={canvasRef} />
         </div>
         <div className="flex justify-end">
-          <Button onClick={handleGenerate}>Generate</Button>
+          <Button onClick={handleGenerate}>Use Now</Button>
         </div>
       </DialogContent>
     </Dialog>

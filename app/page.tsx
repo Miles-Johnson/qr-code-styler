@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
-import { QrCode, Wand2, Zap, Shield, Eye, Palette } from "lucide-react";
+import { QrCode, Wand2, Zap, Shield, Eye, Palette, Bot } from "lucide-react";
 import Link from "next/link";
 import { QRCodeModal } from "@/components/QRCodeModal";
 import { useState, useCallback, useMemo, useEffect } from "react";
@@ -16,6 +16,8 @@ import { UserGallery } from '@/components/UserGallery';
 import { SubscriptionStatus } from '@/components/SubscriptionStatus';
 import Image from "next/image";
 import { Prediction as ReplicatePrediction } from "replicate";
+import { useSnapshot } from 'valtio';
+import { dataUrlGeneratedQRCode } from '../src/lib/state';
 
 interface CustomPrediction {
     id: string;
@@ -55,6 +57,7 @@ export default function Home() {
     const [galleryRefreshTrigger, setGalleryRefreshTrigger] = useState(0);
     const [generatedQrFile, setGeneratedQrFile] = useState<File | null>(null);
     const [qrPreviewUrl, setQrPreviewUrl] = useState<string | null>(null);
+    const snap = useSnapshot(dataUrlGeneratedQRCode);
 
     const toggleGallery = useCallback(() => {
         setShowGallery(prev => {
@@ -99,27 +102,41 @@ export default function Home() {
         }
     };
 
-    const handleQRCodeGenerated = (file: File) => {
-        // Clean up previous preview URL if it exists
-        if (qrPreviewUrl) {
-            URL.revokeObjectURL(qrPreviewUrl);
-        }
+    // Handle generated QR code from modal
+    useEffect(() => {
+        if (snap.value) {
+            // Clean up previous preview URL if it exists
+            if (qrPreviewUrl) {
+                URL.revokeObjectURL(qrPreviewUrl);
+            }
 
-        // Create new preview URL
-        const previewUrl = URL.createObjectURL(file);
-        setQrPreviewUrl(previewUrl);
-        setGeneratedQrFile(file);
+            const byteString = atob(snap.value.split(',')[1]);
+            const mimeString = snap.value.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            const blob = new Blob([ab], { type: mimeString });
+            const file = new File([blob], "qr-code.png", { type: mimeString });
 
-        // Set the file in the hidden input
-        const input = document.getElementById('image') as HTMLInputElement;
-        if (input) {
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            input.files = dataTransfer.files;
-            const event = new Event('change', { bubbles: true });
-            input.dispatchEvent(event);
+            const previewUrl = URL.createObjectURL(file);
+            setQrPreviewUrl(previewUrl);
+            setGeneratedQrFile(file);
+
+            // Set the file in the hidden input
+            const input = document.getElementById('image') as HTMLInputElement;
+            if (input) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                input.files = dataTransfer.files;
+                const event = new Event('change', { bubbles: true });
+                input.dispatchEvent(event);
+            }
+            // Clear the global state after use
+            dataUrlGeneratedQRCode.value = null;
         }
-    };
+    }, [snap.value, qrPreviewUrl]);
 
     // Clean up object URL when component unmounts
     useEffect(() => {
@@ -262,7 +279,7 @@ export default function Home() {
     // Extract feature data for better maintainability
     const features = [
         {
-            icon: Palette,
+            icon: Bot,
             title: "Brand Matching",
             description: "Perfect integration with your brand's visual identity",
         },
@@ -530,7 +547,6 @@ export default function Home() {
                                             </div>
                                         </div>
                                         <QRCodeModal 
-                                            onGenerate={handleQRCodeGenerated}
                                             hasGeneratedQR={qrPreviewUrl !== null}
                                         />
                                     </div>

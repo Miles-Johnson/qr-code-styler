@@ -5,6 +5,7 @@ import { proxy } from 'valtio'
 export const qrcode = proxy({ value: null as any })
 export const generateQRCodeInfo = proxy({ value: null as any })
 export const dataUrlGeneratedQRCode = proxy({ value: null as any })
+export const isModalOpen = proxy({ value: false })
 
 export function defaultGeneratorState(): QRCodeGeneratorState {
   return {

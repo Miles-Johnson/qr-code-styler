@@ -3,7 +3,7 @@ import seedrandom from 'seedrandom'
 import Perspective from 'perspective-transform'
 import { QrCodeDataType, encode } from 'uqr'
 import type { QRCodeGeneratorState, QrCodeGeneratorMarkerState } from './types'
-import { generateQRCodeInfo, qrcode } from './state'
+import { dataUrlGeneratedQRCode, generateQRCodeInfo, qrcode } from './state'
 import { effects } from './effects'
 import { resolveMargin } from './utils'
 
@@ -777,6 +777,8 @@ export async function generateQRCode(outCanvas: HTMLCanvasElement, state: QRCode
   realCtx.drawImage(canvas, 0, 0, width, height)
   realCtx.restore()
 
+  dataUrlGeneratedQRCode.value = outCanvas.toDataURL()
+
   async function applyPerspective() {
     if (state.transformPerspectiveX === 0 && state.transformPerspectiveY === 0)
       return
@@ -891,6 +893,13 @@ function pointToLineProjection(px: number, py: number, x1: number, y1: number, x
   const d = dx * dx + dy * dy
   const u = ((px - x1) * dx + (py - y1) * dy) / d
   const x = x1 + u * dx
-  const y = y1 + u * dy
-  return [x, y] as const
+    const y = y1 + u * dy
+    return [x, y] as const
+}
+
+export function download(canvas: HTMLCanvasElement, name?: string) {
+  const link = document.createElement('a')
+  link.download = name || 'qrcode.png'
+  link.href = canvas.toDataURL()
+  link.click()
 }

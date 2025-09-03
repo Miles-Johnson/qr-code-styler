@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useSnapshot } from 'valtio';
+import { dataUrlGeneratedQRCode } from '../src/lib/state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -13,13 +15,33 @@ export function ImageUploadForm() {
   const { toast } = useToast();
   const [refreshGallery, setRefreshGallery] = useState(0); // Consider if this state is still needed
   const [qrCodeFile, setQrCodeFile] = useState<File | null>(null);
+  const [qrCodePreview, setQrCodePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const promptInputRef = useRef<HTMLInputElement>(null); // Add ref for prompt input
+  const snap = useSnapshot(dataUrlGeneratedQRCode)
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleQRCodeGenerate = (file: File) => {
-    setQrCodeFile(file);
+  useEffect(() => {
+    if (snap.value) {
+      const byteString = atob(snap.value.split(',')[1]);
+      const mimeString = snap.value.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: mimeString });
+      const file = new File([blob], "qr-code.png", { type: mimeString });
+      setQrCodeFile(file);
+      setQrCodePreview(URL.createObjectURL(file));
+      setIsModalOpen(false);
+    }
+  }, [snap.value]);
+
+  const handleClearQRCode = () => {
+    setQrCodeFile(null);
+    setQrCodePreview(null);
     if (fileInputRef.current) {
-      // Clear the file input
       fileInputRef.current.value = '';
     }
   };
@@ -138,11 +160,17 @@ export function ImageUploadForm() {
             className={`flex items-center justify-center w-full border-dashed border-2 ${
               qrCodeFile ? 'border-amber-500' : 'border-slate-700'
             } rounded-lg p-4 cursor-pointer hover:bg-slate-800/50 transition-colors`}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => !qrCodeFile && fileInputRef.current?.click()}
           >
-            {qrCodeFile ? (
-              <div className="flex items-center gap-2">
-                <span className="text-amber-500">QR Code ready for styling</span>
+            {qrCodePreview ? (
+              <div className="flex items-center gap-4">
+                <Image src={qrCodePreview} alt="QR Code Preview" width={64} height={64} className="rounded" />
+                <div className="flex flex-col gap-1">
+                  <span className="text-amber-500">QR Code ready for styling</span>
+                  <Button variant="link" size="sm" onClick={handleClearQRCode} className="text-slate-400 hover:text-amber-500 h-auto p-0">
+                    Clear
+                  </Button>
+                </div>
               </div>
             ) : (
               <span className="text-slate-400">Upload QR Code</span>
@@ -175,7 +203,7 @@ export function ImageUploadForm() {
       )}
 
       <div className="flex justify-center">
-        <QRCodeModal onGenerate={handleQRCodeGenerate} />
+        <QRCodeModal hasGeneratedQR={!!qrCodeFile} />
       </div>
     </div>
   );

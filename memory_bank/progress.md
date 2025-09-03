@@ -25,6 +25,13 @@
 -   ✅ Image gallery
 -   ✅ Basic user management
 -   ✅ **Advanced QR Code Generator**: Implemented a responsive two-panel layout with a scrollable controls panel and a fixed QR code display area. Fixed initial rendering issues and integrated with Valtio for state management.
+-   ✅ **UI and UX Enhancements**:
+    -   Implemented a two-column grid layout to separate functional and stylistic controls.
+    -   Added a collapsible "Advanced" section to hide less frequently used options.
+    -   Replaced icon-based controls with text-based `OptionSelectGroup` components for clarity.
+    -   Enlarged the main QR code preview area for better visibility.
+    -   Added a "Presets" section for quick styling.
+    -   Reordered controls to improve visual hierarchy.
 
 ## Future Development & Enhancements
 

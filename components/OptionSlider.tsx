@@ -30,7 +30,7 @@ export function OptionSlider({ value, onChange, min, max, step, unit, defaultVal
           min={min}
           max={max}
           step={step}
-          className="w-24 p-2 border border-gray-200 rounded-lg"
+          className="w-24 p-2 pr-8 border border-gray-300 rounded-lg"
         />
         {unit && <span className="absolute right-2 top-2 text-gray-400">{unit}</span>}
       </div>
