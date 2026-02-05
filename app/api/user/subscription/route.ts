@@ -5,6 +5,8 @@ import { getUserSubscription, SUBSCRIPTION_TIERS, TIER_LIMITS } from '@/src/util
 import { getUserByEmail } from '@/src/queries/select';
 import { insertUser } from '@/src/queries/insert';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
